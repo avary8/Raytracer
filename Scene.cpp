@@ -1,8 +1,9 @@
 #include "Scene.h"
 
 
-Scene::Scene(Camera cam){
-    this->camera = cam;
+Scene::Scene(shared_ptr<Camera> cam){
+    cameras.push_back(cam);
+    this->currCam = cam;
 }
 
 void Scene::addObj(shared_ptr<Surface> newObj){
@@ -49,7 +50,24 @@ glm::vec3 Scene::reflectRay(Ray& ray, HitResult& hit, int& limit) {
 }
 
 
+void Scene::addNewCam(glm::vec3 pos, glm::vec3 target, glm::vec3 up){
+    cameras.push_back(make_shared<Camera>(Camera(pos, target, up)));
+}
 
-Camera Scene::getCam(){
-    return camera;
+void Scene::nextCam(){
+    for (int i = 0; i < cameras.size(); i++) {
+        if (cameras[i] == currCam){
+            if (i == cameras.size()-1) {
+                currCam = cameras[0];
+            } else {
+                currCam = cameras[++i];
+            }
+            return;
+        }
+    }
+}
+
+
+shared_ptr<Camera> Scene::getCam(){
+    return currCam;
 }

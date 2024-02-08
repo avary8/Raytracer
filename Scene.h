@@ -15,21 +15,22 @@ using namespace std;
 
 class Scene {
 public:
-    Scene(Camera cam);
+    Scene(shared_ptr<Camera> cam);
     void addObj(shared_ptr<Surface> newObj);
 
     HitResult traceRay(Ray& ray, float tmin, float tmax);
     glm::vec3 reflectRay(Ray& ray, HitResult& hit, int& limit);
 
-    Camera getCam();
+    shared_ptr<Camera> getCam();
 
-    //void setNewCam();
-    // maybe have a vector of camera that you can switch between
-    // void changeCam();
+    void addNewCam(glm::vec3 pos, glm::vec3 target, glm::vec3 up);
+    void nextCam();
 
 private:
-    Camera camera;
+    shared_ptr<Camera> currCam;
     vector<shared_ptr<Surface>> objects;
+    vector<shared_ptr<Camera>> cameras;
+
     //std::vector<Light> lights;
     glm::vec3 backgroundColor;
     glm::vec3 ambientLight;
