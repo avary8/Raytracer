@@ -12,7 +12,7 @@ public:
         diffuseColor = {0, 0, 0};
         specularColor = {0, 0, 0};
     }
-    Material(glm::vec3 rgb){
+    Material(const glm::vec3& rgb){
         ambientColor = rgb;
         diffuseColor = rgb;
         specularColor = rgb * 3.0f;

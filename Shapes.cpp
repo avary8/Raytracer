@@ -5,7 +5,7 @@ Surface::Surface(){
     material = Material();
 }
 
-Surface::Surface(glm::vec3 rgb){
+Surface::Surface(glm::vec3& rgb){
     material = Material(rgb);
 }
 
@@ -17,12 +17,10 @@ Material Surface::getMaterial() {
     return material;
 }
 
-Plane::Plane(float width, float length, const glm::vec3& position, const glm::vec3& normal, const glm::vec3& rgb){
-    this->width = width;
-    this->length = length;
+Plane::Plane(glm::vec3& position, const glm::vec3& normal, glm::vec3& rgb){
     this->position = position;
     this->normal = glm::normalize(normal);
-    material = Material(rgb);
+    this->material = Material(rgb);
 }
 
 HitResult Plane::intersect(Ray& ray, float& tmin, float& tmax) const {
@@ -45,7 +43,7 @@ HitResult Plane::intersect(Ray& ray, float& tmin, float& tmax) const {
     return hitResult;
 }
 
-Triangle::Triangle(vector<glm::vec3> vertices, glm::vec3 rgb){
+Triangle::Triangle(const vector<glm::vec3>& vertices, const glm::vec3& rgb){
     this->vertices = vertices;
     this->material = Material(rgb);
     this->normal = glm::cross(vertices[0], vertices[1]);
@@ -90,7 +88,7 @@ HitResult Triangle::intersect(Ray& ray, float& tmin, float& tmax) const {
     return hitRes;
 }
 
-Sphere::Sphere(float radius, glm::vec3 origin, glm::vec3 rgb){
+Sphere::Sphere(float radius, const glm::vec3& origin, const glm::vec3& rgb){
     this->radius = radius;
     this->origin = origin;
     material = Material(rgb);

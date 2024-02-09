@@ -1,22 +1,22 @@
 #include "Scene.h"
 
 
-Scene::Scene(shared_ptr<OrthoCam> cam, shared_ptr<Camera> cam2){
+Scene::Scene(const shared_ptr<OrthoCam>& cam, const shared_ptr<Camera>& cam2){
     this->orthoCam = cam;
     this->perspectCam = cam2;
     this->currCam = cam2;
     cameras.push_back(cam2);
 }
 
-void Scene::addObj(shared_ptr<Surface> newObj){
+void Scene::addObj(const shared_ptr<Surface>& newObj){
     this->objects.push_back(newObj);
 }
 
-void Scene::addLight(shared_ptr<glm::vec3> light){
+void Scene::addLight(const shared_ptr<glm::vec3>& light){
     this->lights.push_back(light);
 }
 
-vector<shared_ptr<glm::vec3>> Scene::getLights(){
+vector<shared_ptr<glm::vec3>>& Scene::getLights(){
     return this->lights;
 }
 
@@ -56,7 +56,7 @@ glm::vec3 Scene::shadeRay(Ray& ray, float tmin, float tmax, int& limit) {
 
             // shadows
             Ray shadowRay = Ray(hit.hitPt, ptLight);
-            HitResult shadowHit = traceRay(shadowRay, .001, FLT_MAX);
+            HitResult shadowHit = traceRay(shadowRay, tmin, tmax);
             if (shadowHit.hit){
                 //L *= 0.6;
                 //L += mat.ambientColor * mat.ambientI;
@@ -80,7 +80,7 @@ glm::vec3 Scene::shadeRay(Ray& ray, float tmin, float tmax, int& limit) {
     
             Ray reflectRay(hit.hitPt, reflectDir);
 
-            HitResult reflectHit = traceRay(reflectRay, 0.001f, FLT_MAX);
+            HitResult reflectHit = traceRay(reflectRay, tmin, tmax);
             if (reflectHit.hit){
                 limit -= 1;
                 // looks super good on ortho
@@ -112,7 +112,7 @@ void Scene::clearCams(){
     cameras.clear();
 }
 
-void Scene::addNewCam(glm::vec3 pos, glm::vec3 lookAt, glm::vec3 up, float FOV, unsigned int w, unsigned int h){
+void Scene::addNewCam(const glm::vec3& pos, const glm::vec3& lookAt, const glm::vec3& up, float& FOV, int& w, int& h){
     if (typeid(*currCam) == typeid(OrthoCam)) {
         cameras.push_back(make_shared<OrthoCam>(OrthoCam(pos, lookAt, up, FOV, w, h)));
     } else {

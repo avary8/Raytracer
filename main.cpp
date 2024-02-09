@@ -31,11 +31,11 @@ void rayTrace(Scene scene);
 void initOpenGLstuff(GLFWwindow*& window, unsigned int& texture, unsigned int& shaderProgram, unsigned int& VBO, unsigned int& VAO, unsigned int& EBO);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 800;
-const unsigned int PIX_WIDTH = 800;
-const unsigned int PIX_HEIGHT = 800;
-const float FOV = 60.0f;
+int SCR_WIDTH = 800;
+int SCR_HEIGHT = 800;
+int PIX_WIDTH = 800;
+int PIX_HEIGHT = 800;
+float FOV = 60.0f;
 
 const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
@@ -176,17 +176,15 @@ Scene createScene(){
         glm::vec3(175.0f, 0.2f, 150.0f)
     };
 
-
     Triangle tri1(vector<glm::vec3>{vertices[0], vertices[1], vertices[2]}, glm::vec3(255, 204, 255));
     Triangle tri2(vector<glm::vec3>{vertices[0], vertices[1], vertices[3]}, glm::vec3(255, 204, 255));
     Triangle tri3(vector<glm::vec3>{vertices[0], vertices[2], vertices[3]}, glm::vec3(255, 204, 255));
     Triangle tri4(vector<glm::vec3>{vertices[1], vertices[2], vertices[3]}, glm::vec3(255, 204, 255));
 
-
     glm::vec3 floorPosition(-400.0f, 0.0f, 0.0f); 
     glm::vec3 floorNormal(0.0f, 1.0f, 0.0f);
     glm::vec3 floorColor(200, 200, 200);
-    Plane floor(800.0f, 800.0f, floorPosition, normalize(floorNormal), floorColor);
+    Plane floor(floorPosition, normalize(floorNormal), floorColor);
 
     /*---------------Saving to Scene------------*/
     Scene scene(make_shared<OrthoCam>(orthoCam), make_shared<Camera>(perspectCam));
@@ -244,7 +242,7 @@ void generateCams(Scene& scene){
 
 
 void rayTrace(Scene scene){
-     // Create the image (RGB Array) to be displayed
+    // Create the image (RGB Array) to be displayed
     unsigned char* image = new unsigned char[PIX_WIDTH*PIX_HEIGHT*3];
 
     for (int j = 0; j < PIX_HEIGHT; j++){

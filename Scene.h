@@ -16,13 +16,12 @@
 #endif
 using namespace std;
 
-
 class Scene {
 public:
-    Scene(shared_ptr<OrthoCam> cam, shared_ptr<Camera> cam2);
-    void addObj(shared_ptr<Surface> newObj);
-    void addLight(shared_ptr<glm::vec3> light);
-    vector<shared_ptr<glm::vec3>> getLights();
+    Scene(const shared_ptr<OrthoCam>& cam, const shared_ptr<Camera>& cam2);
+    void addObj(const shared_ptr<Surface>& newObj);
+    void addLight(const shared_ptr<glm::vec3>& light);
+    vector<shared_ptr<glm::vec3>>& getLights();
 
     HitResult traceRay(Ray& ray, float tmin, float tmax);
     glm::vec3 shadeRay(Ray& ray, float tmin, float tmax, int& limit);
@@ -31,7 +30,7 @@ public:
 
     shared_ptr<Camera> getCam();
     void clearCams();
-    void addNewCam(glm::vec3 pos, glm::vec3 lookAt, glm::vec3 up, float FOV, unsigned int w, unsigned int h);
+    void addNewCam(const glm::vec3& pos, const glm::vec3& lookAt, const glm::vec3& up, float& FOV, int& w, int& h);
     void nextCam();
 
 private:

@@ -11,7 +11,7 @@ using namespace std;
 class Camera {
 public:
     Camera(){};
-    Camera(glm::vec3 pos, glm::vec3 lookAt, glm::vec3 up, float fov, int width, int height);
+    Camera(const glm::vec3& pos, const glm::vec3& lookAt, const glm::vec3& up, float fov, int width, int height);
     virtual Ray generateRay(int i, int j, int pixWidth, int pixHeight);
 
     glm::vec3 getPos();

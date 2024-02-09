@@ -1,7 +1,7 @@
 #include "Camera.h"
 
 
-Camera::Camera(glm::vec3 pos, glm::vec3 lookAt, glm::vec3 up, float fov, int width, int height){
+Camera::Camera(const glm::vec3& pos, const glm::vec3& lookAt, const glm::vec3& up, float fov, int width, int height){
     this->pos = pos;
     this->lookAt = lookAt; 
     this->dir = glm::normalize(pos - lookAt); // w

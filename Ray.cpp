@@ -1,11 +1,11 @@
 #include "Ray.h"
 
-Ray::Ray(glm::vec3 origin, glm::vec3 dir){
+Ray::Ray(const glm::vec3& origin, const glm::vec3& dir){
     this->origin = origin;
     this->dir = dir;
 }
 
-glm::vec3 Ray::evaluate(float t){
+glm::vec3 Ray::evaluate(float& t){
     return origin + t*dir;
 }
 
