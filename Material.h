@@ -31,5 +31,5 @@ public:
 
     glm::vec3 L;
 
-    float p = 30.0f;
+    float p = 15.0f;
 };

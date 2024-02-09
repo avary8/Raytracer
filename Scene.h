@@ -25,7 +25,7 @@ public:
     vector<shared_ptr<glm::vec3>> getLights();
 
     HitResult traceRay(Ray& ray, float tmin, float tmax);
-    glm::vec3 reflectRay(Ray& ray, HitResult& hit, int& limit);
+    glm::vec3 shadeRay(Ray& ray, float tmin, float tmax, int& limit);
 
     void switchPerspective();
 
@@ -42,8 +42,7 @@ private:
 
     shared_ptr<OrthoCam> orthoCam;
     shared_ptr<Camera> perspectCam;
+    shared_ptr<Surface> lastHit;
 
-
-    //std::vector<Light> lights;
     glm::vec3 backgroundColor = {153, 153, 255};
 };

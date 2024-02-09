@@ -30,7 +30,7 @@ Ray Camera::generateRay(int i, int j, int pixWidth, int pixHeight){
     v = b + ((t-b) * (j+0.5))/static_cast<float>(pixHeight);
 
     // perspective
-    Ray ray (this->pos, glm::normalize(this->right * u + this->up * v + this->dir * -800.0f));
+    Ray ray (this->pos, this->right * u + this->up * v + this->dir * -800.0f);
 
     return ray;
 }

@@ -36,27 +36,70 @@ HitResult Scene::traceRay(Ray& ray, float tmin, float tmax) {
             hitRes.material = object->getMaterial();
             tmax = objectHit.t;
         }
+        
     }
     return hitRes;
 }
 
-glm::vec3 Scene::reflectRay(Ray& ray, HitResult& hit, int& limit) {
-    if (limit > 0) {
-        //glm::vec3 reflectDir = ray.getDir() - 2.0f * glm::dot(ray.getDir(), hit.normal) * hit.normal;
-        glm::vec3 reflectDir = ray.getDir() - 2.0f * glm::dot(ray.getDir(), hit.normal) * hit.normal;
-        Ray reflectRay(hit.hitPt, reflectDir);
-        HitResult reflectHit = traceRay(reflectRay, 0.001f, FLT_MAX);
-        if (reflectHit.hit){
-            limit -= 1;
-            return reflectHit.material.L + this->reflectRay(ray, reflectHit, limit);
+
+glm::vec3 Scene::shadeRay(Ray& ray, float tmin, float tmax, int& limit) {
+    glm::vec3 L = {0.0f, 0.0f, 0.0f};
+    HitResult hit = traceRay(ray, tmin, tmax);
+    if (hit.hit){
+        Material mat = hit.material;
+        for (int i = 0; i < lights.size(); i++){
+            glm::vec3 ptLight = *lights[i];
+            glm::vec3 lightDir = normalize(ptLight - hit.hitPt);
+            
+            // Ambient
+            L += mat.ambientColor * mat.ambientI;
+
+            // shadows
+            Ray shadowRay = Ray(hit.hitPt, ptLight);
+            HitResult shadowHit = traceRay(shadowRay, .001, FLT_MAX);
+            if (shadowHit.hit){
+                //L *= 0.6;
+                //L += mat.ambientColor * mat.ambientI;
+            } else {
+                // Diffuse
+            L += mat.diffuseI * mat.diffuseColor * max(0.0f, glm::dot(lightDir, hit.normal));
+
+            // Specular
+            glm::vec3 vh = (ptLight + hit.hitPt)/glm::length(ptLight + hit.hitPt);
+            //glm::vec3 vh = glm::normalize(lightDir + glm::normalize(ray.getDir()));
+            L += mat.specularI * mat.specularColor * max(0.0f, glm::pow(glm::dot(vh, hit.normal), mat.p));
+            }
+        }  
+
+        // mirror
+        if(limit > 0){
+            glm::vec3 reflectDir = -ray.getDir() - 2.0f * glm::dot(-ray.getDir(), hit.normal) * hit.normal;
+            if (typeid(*currCam) == typeid(OrthoCam)) {
+                reflectDir = glm::reflect(-ray.getDir(), hit.normal);
+            }
+    
+            Ray reflectRay(hit.hitPt, reflectDir);
+
+            HitResult reflectHit = traceRay(reflectRay, 0.001f, FLT_MAX);
+            if (reflectHit.hit){
+                limit -= 1;
+                // looks super good on ortho
+                L += reflectHit.material.specularI * this->shadeRay(reflectRay, tmin, tmax, limit);
+            }
+            //L += 0.03f * hit.reflectance;
+            //L *= hit.reflectance;
+            //L += mat.specularI * glm::normalize(mat.specularColor * hit.reflectance) * hit.reflectance;
+            return L;
+        } else {
+            return backgroundColor;
         }
     }
-    return hit.material.L;
+    return L;
 }
 
 void Scene::switchPerspective(){
     clearCams();
-    if (this->currCam == this->perspectCam){
+    if (typeid(*currCam) == typeid(Camera)){
         this->currCam = this->orthoCam;
         cameras.push_back(currCam);
         return;

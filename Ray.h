@@ -7,7 +7,6 @@ using namespace std;
 class Ray {
 public:
     Ray(glm::vec3 origin, glm::vec3 dir);
-    // solve for Origin( viewpoint, (u, v), camera vectors(u, v)) 
     glm::vec3 evaluate(float t);
 
     glm::vec3 getOrigin();

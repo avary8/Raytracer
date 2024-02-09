@@ -33,8 +33,8 @@ void initOpenGLstuff(GLFWwindow*& window, unsigned int& texture, unsigned int& s
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 800;
-const unsigned int PIX_WIDTH = 512;
-const unsigned int PIX_HEIGHT = 512;
+const unsigned int PIX_WIDTH = 800;
+const unsigned int PIX_HEIGHT = 800;
 const float FOV = 60.0f;
 
 const char *vertexShaderSource = "#version 330 core\n"
@@ -159,21 +159,21 @@ Scene createScene(){
     // perspective cams
     // bigger z = moving farther away from scene . moving towards screen (me)
     //Camera camera(glm::vec3(0.0f, 700.0f, 1500.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
-    Camera perspectCam(glm::vec3(0.0f, 100.0f, 1000.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
+    Camera perspectCam(glm::vec3(0.0f, 100.0f, 800.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
 
     /*-------------------------Shape Init-------------------------*/
 
-    Sphere newSphere(25.0f, glm::vec3(100.0f, 50.0f, 10.0f), glm::vec3(20, 20, 255));
-    Sphere newSphere2(20.0f, glm::vec3(-100.0f, 20.0f, 0.0), glm::vec3(255, 0, 0));
-    Sphere newSphere3(40.0f, glm::vec3(0.0f, 40.0f, 0.0f), glm::vec3(0, 255, 0));
+    Sphere newSphere(25.0f, glm::vec3(175.0f, 225.1f, 10.0f), glm::vec3(20, 20, 255));
+    Sphere newSphere2(25.0f, glm::vec3(-100.0f, 25.1f, 20.0), glm::vec3(255, 0, 0));
+    Sphere newSphere3(40.0f, glm::vec3(25.0f, 40.1f, 20.0f), glm::vec3(0, 255, 0));
 
-    Sphere newSphere4(50.0f, glm::vec3(-200.0f, 50.0f, 0.0f), glm::vec3(255, 255, 204));
+    Sphere newSphere4(50.0f, glm::vec3(-200.0f, 50.1f, 50.0f), glm::vec3(255, 255, 204));
 
     vector<glm::vec3> vertices = {
-        glm::vec3(175.0f, 200.0f, 0.0f),
-        glm::vec3(250.0f, 0.1f, 0.0f),
-        glm::vec3(100.0f, 0.1f, 0.0f),
-        glm::vec3(175.0f, 0.1f, 150.0f)
+        glm::vec3(175.0f, 200.2f, 0.0f),
+        glm::vec3(250.0f, 0.2f, 0.0f),
+        glm::vec3(100.0f, 0.2f, 0.0f),
+        glm::vec3(175.0f, 0.2f, 150.0f)
     };
 
 
@@ -253,42 +253,11 @@ void rayTrace(Scene scene){
             HitResult hit = scene.traceRay(ray, .001, FLT_MAX);
 
             if (hit.hit) {
-                Material mat = hit.material;
-                vector<shared_ptr<glm::vec3>> lights = scene.getLights();
-                glm::vec3 L = {0, 0, 0};
+                // ortho looks greater with > limit 
+                int limit = 2;
+                glm::vec3 L = scene.shadeRay(ray, 0.001, FLT_MAX, limit);
 
-                for (int i = 0; i < lights.size(); i++){
-                    glm::vec3 ptLight = *lights[i];
-                    glm::vec3 lightDir = normalize(ptLight - hit.hitPt);
-                  
-                    // Ambient
-                    L = mat.ambientColor * mat.ambientI;
-
-                    // Diffuse
-                    L += mat.diffuseI * mat.diffuseColor * max(0.0f, glm::dot(lightDir, hit.normal));
-
-                    // Specular
-                    glm::vec3 vh = (ptLight + hit.hitPt)/glm::length(ptLight + hit.hitPt);
-                    //glm::vec3 vh = glm::normalize(lightDir + glm::normalize(ray.getDir()));
-                    L += mat.specularI * mat.specularColor * max(0.0f, glm::pow(glm::dot(vh, hit.normal), mat.p));
-
-                    // shadows
-                    Ray shadowRay = Ray(hit.hitPt, ptLight);
-                    HitResult shadowHit = scene.traceRay(shadowRay, .001, FLT_MAX);
-                    if (shadowHit.hit){
-                        //L *= 0.85;
-                        L = mat.ambientColor * mat.ambientI;
-                    }
-
-                    int limit = 1;
-                    hit.reflectance = scene.reflectRay(ray, hit, limit); 
-                    // mirror
-                    L += 0.03f * hit.reflectance;
-                    //L *= hit.reflectance;
-                    //L += mat.specularI * glm::normalize(mat.specularColor * hit.reflectance) * hit.reflectance;
-                }
-
-                glm::vec3 correctedColor = glm::pow(L, glm::vec3(1.0f / 1.0f));
+                glm::vec3 correctedColor = glm::pow(L, glm::vec3(1.0f / 1.14f));
                 L = glm::clamp(correctedColor, 0.0f, 255.0f);
 
                 //L = glm::clamp(L, 0.0f, 255.0f);
