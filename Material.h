@@ -16,6 +16,7 @@ public:
         ambientColor = rgb;
         diffuseColor = rgb;
         specularColor = rgb;
+        L = rgb;
     };
 
     glm::vec3 evaluate(glm::vec3& l, glm::vec3& v, glm::vec3& n);
@@ -28,6 +29,7 @@ public:
     float diffuseI = 0.3;
     float specularI = 0.3;
 
-    float p = 100;
-    bool glaze = false;
+    glm::vec3 L;
+
+    float p = 16;
 };

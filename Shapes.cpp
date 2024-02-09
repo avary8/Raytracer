@@ -52,6 +52,46 @@ Plane::Plane(float width, float length, const glm::vec3& position, const glm::ve
 //     return hitResult;
 // }
 
+// HitResult Plane::intersect(Ray& ray, float& tmin, float& tmax) const {
+//     // Check if the ray intersects the floor
+//     // Compute the hit point, normal, material color, etc.
+//     // Update tmin and tmax accordingly
+//     // Return a HitResult structure
+
+//     // Example implementation:
+//     HitResult hitResult;
+//     hitResult.hit = false;
+
+//     float denom = glm::dot(ray.getDir(), this->normal);
+//     if (std::abs(denom) > EPSILON) {
+//         glm::vec3 rayToPlane = this->position - ray.getOrigin();
+//         float t = glm::dot(rayToPlane, this->normal) / denom;
+
+//         // Intersection within the valid range
+//         if (t >= tmin && t <= tmax) {
+//             glm::vec3 intersectPt = ray.evaluate(t);
+
+//             // Calculate local coordinates relative to the plane's origin
+//             glm::vec3 localIntersect = intersectPt - position;
+//             glm::vec3 axis1 = glm::normalize(glm::cross(normal, glm::vec3(0, 1, 0)));
+//             glm::vec3 axis2 = glm::normalize(glm::cross(normal, axis1));
+//             float distWidth = glm::dot(localIntersect, glm::normalize(axis1));
+//             float distLength = glm::dot(localIntersect, glm::normalize(axis2));
+
+//             // Check if the intersection point is within the bounds of the plane
+//             if (distWidth >= 0 && distWidth <= width &&
+//                 distLength >= 0 && distLength <= length) {
+//                     //cout << "hit";
+//                 hitResult.hit = true;
+//                 hitResult.t = t;
+//                 hitResult.hitPt = intersectPt;
+//                 hitResult.normal = normal;
+//             }
+//         }
+//     }
+//     return hitResult;
+// }
+
 HitResult Plane::intersect(Ray& ray, float& tmin, float& tmax) const {
     // Check if the ray intersects the floor
     // Compute the hit point, normal, material color, etc.
@@ -62,36 +102,23 @@ HitResult Plane::intersect(Ray& ray, float& tmin, float& tmax) const {
     HitResult hitResult;
     hitResult.hit = false;
 
-    float denom = glm::dot(ray.getDir(), this->normal);
+    float denom = glm::dot(this->normal, ray.getDir());
     if (std::abs(denom) > EPSILON) {
         glm::vec3 rayToPlane = this->position - ray.getOrigin();
         float t = glm::dot(rayToPlane, this->normal) / denom;
 
         // Intersection within the valid range
         if (t >= tmin && t <= tmax) {
-            glm::vec3 intersectPt = ray.evaluate(t);
-
-            // Calculate local coordinates relative to the plane's origin
-            glm::vec3 localIntersect = intersectPt - position;
-            glm::vec3 axis1 = glm::normalize(glm::cross(normal, glm::vec3(0, 1, 0)));
-            glm::vec3 axis2 = glm::normalize(glm::cross(normal, axis1));
-            float distWidth = glm::dot(localIntersect, glm::normalize(axis1));
-            float distLength = glm::dot(localIntersect, glm::normalize(axis2));
-
-            // Check if the intersection point is within the bounds of the plane
-            if (distWidth >= 0 && distWidth <= width &&
-                distLength >= 0 && distLength <= length) {
-                    //cout << "hit";
-                hitResult.hit = true;
-                hitResult.t = t;
-                hitResult.hitPt = intersectPt;
-                hitResult.normal = normal;
-            }
+            //cout << "hit";
+            hitResult.hit = true;
+            hitResult.t = t;
+            hitResult.hitPt = ray.evaluate(t);
+            hitResult.normal = normal;
+            
         }
     }
     return hitResult;
 }
-
 
 
 Triangle::Triangle(vector<glm::vec3> vertices, glm::vec3 rgb){
@@ -207,6 +234,5 @@ HitResult Sphere::intersect(Ray& ray, float& tmin, float& tmax) const {
             hitRes.normal = glm::normalize(hitRes.hitPt - this->origin);
         }
     }
-    
     return hitRes;
 }

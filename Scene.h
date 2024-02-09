@@ -4,6 +4,7 @@
 #include <memory>
 #include <algorithm>
 #include <cmath>
+#include <memory>
 #include <float.h>
 #include <glm/vec3.hpp>
 #include "Ray.h"
@@ -32,6 +33,5 @@ private:
     vector<shared_ptr<Camera>> cameras;
 
     //std::vector<Light> lights;
-    glm::vec3 backgroundColor;
-    glm::vec3 ambientLight;
+    glm::vec3 backgroundColor = {153, 153, 255};
 };

@@ -143,31 +143,33 @@ Scene createScene(){
     //Camera camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -0.4f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 60.0f);
 
 
-    Camera camera(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    //Camera camera(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     
 
     // look from above so that z-axis is now up and down
     //Camera camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 200.0f, 100.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), 60.0f);
 
     // perspective cams
-    //Camera camera(glm::vec3(0.0f, 0.0f, 150.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    // bigger z = moving farther away from scene . moving towards screen (me)
+    Camera camera(glm::vec3(0.0f, 700.0f, 1500.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    //Camera camera(glm::vec3(0.0f, 100.0f, 200.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 
     //vector<glm::vec3> vertices = {glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(2.0f, 0.0f, 0.0f)};
 
     // z closer to zero == closer to camera 
     // positive z is coming out towards screen... so closer ?
-    Sphere newSphere(200.0f, glm::vec3(200.0f, 200.0f, -100.0f), glm::vec3(255, 204, 255));
-    Sphere newSphere2(200.0f, glm::vec3(-500.0f, 200.0f, 40.0), glm::vec3(255, 0, 0));
-    Sphere newSphere3(100.0f, glm::vec3(350.0f, 200.0f, 80.0f), glm::vec3(0, 255, 0));
+    Sphere newSphere(300.0f, glm::vec3(200.0f, 300.0f, 40.0f), glm::vec3(255, 204, 255));
+    Sphere newSphere2(200.0f, glm::vec3(-500.0f, 200.0f, 60.0), glm::vec3(255, 0, 0));
+    Sphere newSphere3(100.0f, glm::vec3(350.0f, 200.0f, 200.0f), glm::vec3(0, 255, 0));
 
-    Sphere newSphere4(50.0f, glm::vec3(-700.0f, 600.0f, 5.0f), glm::vec3(255, 255, 204));
+    Sphere newSphere4(50.0f, glm::vec3(-700.0f, 600.0f, 1.0f), glm::vec3(255, 255, 204));
 
 
     // Triangle newTriangle(vertices, glm::vec3(255.0, 0.0, 0.0));
 
-    glm::vec3 floorPosition(-800.0f, 0.0f, 0.0f); 
-    glm::vec3 floorNormal(0.0f, 1.0f, 0.4f);
+    glm::vec3 floorPosition(-400.0f, 0.0f, 0.0f); 
+    glm::vec3 floorNormal(0.0f, 1.0f, 0.0f);
     glm::vec3 floorColor(100, 100, 100);
 
     // Create a Plane object with the specified parameters
@@ -199,7 +201,6 @@ void generateCams(Scene& scene){
         scene.addNewCam(glm::vec3(x, 0.0f, z), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
         angle += 1;
-
     }
 }
 
@@ -219,10 +220,12 @@ void rayTrace(Scene scene){
     glm::vec3 camU, camV, camW;
     scene.getCam()->getCameraBasis(camU, camV, camW);
 
-    glm::vec3 ptLight = {-200.0f, 400.0f, 0.0f};
 
-    for (int i = 0; i < PIX_WIDTH; i++){
-        for (int j = 0; j < PIX_HEIGHT; j++){
+    // i think this is like the light direction
+    glm::vec3 ptLight = {-400.0f, 400.0f, -550.0f};
+
+    for (int j = 0; j < PIX_HEIGHT; j++){
+        for (int i = 0; i < PIX_WIDTH; i++){
             // get u and v --> screen coordinates 
             // u and v are just a point . like (50 , 9)
 
@@ -232,22 +235,23 @@ void rayTrace(Scene scene){
             // s is point on img plane 
 
             // pixel at position (i, j) in the raster image has the pos: 
-            u = l + ((r-l) * (i+0.5)/PIX_WIDTH);
-            v = b + ((t-b) * (j+0.5)/PIX_HEIGHT);
+            u = l + ((r-l) * (i+0.5))/static_cast<float>(PIX_WIDTH);
+            v = b + ((t-b) * (j+0.5))/static_cast<float>(PIX_HEIGHT);
 
 
+            //Ray ray(scene.getCam()->getPos(), glm::normalize(glm::vec3{u, v, -1.0f} - scene.getCam()->getPos()));
 
             // where (u, v) are coordinates of the pixel's pos on the image plane
             // u = i;
             // v = j;
-        
+
             // i, j are the origin's wrt pixel -- screen
-            
+
             // orthographic
-            Ray ray (scene.getCam()->getPos() + (u * camU) + (v * camV), camW);
+            //Ray ray (scene.getCam()->getPos() + (u * camU) + (v * camV), camW);
 
             // for perspective i think
-            //Ray ray (scene.getCam()->getPos(), glm::normalize(1.0f * camW + u * camU + v * camV));
+            Ray ray (scene.getCam()->getPos(), glm::normalize(camU * u + camV * v + camW * -800.0f));
 
             //Ray ray(scene.getCam()->getPos(), glm::normalize(u * camU + v * camV + camW));
 
@@ -262,10 +266,13 @@ void rayTrace(Scene scene){
                 // ambient, diffuse, specular, shadows all for just 1 light source
                 glm::vec3 L = {0, 0, 0};
                 Material mat = hit.material;
-                // just ambient 
+
+                // Ambient
                 L = mat.ambientColor * mat.ambientI;
 
                 //glm::vec3 l = (ptLight-hit.hitPt)/glm::normalize(ptLight-hit.hitPt);
+
+                // Diffuse
                 glm::vec3 l = glm::normalize(ptLight-hit.hitPt);
                 L += mat.diffuseI * mat.diffuseColor * max(0.0f, glm::dot(l, hit.normal));
 
@@ -273,20 +280,28 @@ void rayTrace(Scene scene){
                 //glm::vec3 correctedColor = glm::pow(L, glm::vec3(1.0f / gamma));
                 //L = glm::clamp(correctedColor, 0.0f, 255.0f);
 
+                // Specular
                 glm::vec3 vh = (ptLight + hit.hitPt)/glm::length(ptLight + hit.hitPt);
                 L += mat.specularColor * max(0.0f, glm::pow(glm::dot(hit.normal, vh), mat.p));
 
-                L = glm::clamp(L, 0.0f, 255.0f);
-
-                // mirror
-                //L += hit.reflectance;
 
                 // shadows
                 Ray shadowRay = Ray(hit.hitPt, ptLight);
                 HitResult shadowHit = scene.traceRay(shadowRay, .001, FLT_MAX);
                 if (shadowHit.hit){
-                    L *= 0.8f;
+                    //L *= 0.75;
+                    L = mat.ambientColor * mat.ambientI;
                 }
+
+                int limit = 1;
+                hit.reflectance = scene.reflectRay(ray, hit, limit); 
+                // mirror
+                L += 0.1f * hit.reflectance;
+
+                L = glm::clamp(L, 0.0f, 255.0f);
+
+                hit.material.L = L;
+                
 
                 int idx = (j * PIX_WIDTH + i) * 3;
                 image[idx] = static_cast<unsigned char>(L[0]); 
@@ -295,8 +310,8 @@ void rayTrace(Scene scene){
             } else {
                 int idx = (j * PIX_WIDTH + i) * 3;
                 image[idx] = static_cast<unsigned char>(153); 
-                image[idx+1] = static_cast<unsigned char>(153);;
-                image[idx+2] = static_cast<unsigned char>(255);;
+                image[idx+1] = static_cast<unsigned char>(153);
+                image[idx+2] = static_cast<unsigned char>(255);
             }
         }
     }

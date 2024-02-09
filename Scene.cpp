@@ -23,14 +23,9 @@ HitResult Scene::traceRay(Ray& ray, float tmin, float tmax) {
         //     }
         // }
         if (objectHit.hit && objectHit.t < hitRes.t) {
-            obj = *object;
             hitRes = objectHit;
             hitRes.material = object->getMaterial();
         }
-    }
-    if (hitRes.hit){
-        int limit = 2;
-        //hitRes.reflectance = reflectRay(ray, hitRes, limit); 
     }
     return hitRes;
 }
@@ -38,15 +33,15 @@ HitResult Scene::traceRay(Ray& ray, float tmin, float tmax) {
 
 glm::vec3 Scene::reflectRay(Ray& ray, HitResult& hit, int& limit) {
     if (limit > 0) {
-        glm::vec3 reflectDir = ray.getDir() - 2.0f * glm::dot(ray.getDir(), hit.normal) * hit.normal;
+        //glm::vec3 reflectDir = ray.getDir() - 2.0f * glm::dot(ray.getDir(), hit.normal) * hit.normal;
+        glm::vec3 reflectDir = hit.normal * -2.0f * glm::dot(hit.normal, ray.getDir()) + ray.getDir();
         Ray reflectRay(hit.hitPt, reflectDir);
         HitResult reflectHit = traceRay(reflectRay, 0.001f, FLT_MAX);
-        limit -= 1;
         if (reflectHit.hit){
-            return reflectHit.material.diffuseColor;// * this->reflectRay(reflectRay, reflectHit, limit);
+            return reflectHit.material.L;
         }
     }
-    return {0, 0, 0};
+    return hit.material.L;
 }
 
 

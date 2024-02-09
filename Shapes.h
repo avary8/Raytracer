@@ -6,6 +6,7 @@
 #include <glm/gtx/norm.hpp>
 #include <glm/geometric.hpp>
 #include <limits>
+#include <memory>
 #include "Ray.h"
 #include "Material.h"
 #include "Hits.h"

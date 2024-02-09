@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <memory>
 #include <glm/vec3.hpp>
 #include <float.h>
 #include "Ray.h"
