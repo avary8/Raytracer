@@ -37,6 +37,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 800;
 const unsigned int PIX_WIDTH = 800;
 const unsigned int PIX_HEIGHT = 800;
+const float FOV = 60.0f;
 
 const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
@@ -133,11 +134,11 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 }
 
 Scene createScene(){
-    Scene orthoScene = generateOrthographic();
-    //Scene perspectiveScene = generatePerspective();
+    //Scene orthoScene = generateOrthographic();
+    Scene perspectiveScene = generatePerspective();
 
-   generateCams(orthoScene);
-    return orthoScene;
+    generateCams(perspectiveScene);
+    return perspectiveScene;
 }
 
 Scene generateOrthographic(){
@@ -146,18 +147,28 @@ Scene generateOrthographic(){
     //Camera camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -0.4f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 60.0f);
     // positive z makes camera walk away from scene and towards (screen (me))
     // ^ zooming out
-    Camera camera(glm::vec3(0.0f, 50.0f, 40.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)); 
+    // when we go negative z. we walk to the other side basically . and the objects are flipped because we are viewing from diff side
+    Camera camera(glm::vec3(0.0f, 50.0f, 10.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT); 
 
     // look from above so that z-axis is now up and down
     //Camera camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 200.0f, 100.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), 60.0f);
 
     // z closer to zero == closer to camera 
     // positive z is coming out towards screen... so closer ?
-    Sphere newSphere(200.0f, glm::vec3(20.0f, 200.0f, 0.0f), glm::vec3(255, 204, 255));
-    Sphere newSphere2(150.0f, glm::vec3(500.0f, 150.0f, 2.0), glm::vec3(255, 0, 0));
-    Sphere newSphere3(70.0f, glm::vec3(300.0f, 70.0f, 3.0f), glm::vec3(0, 255, 0));
+    // a visible object origin z-value NEEDS to be > radius + camera.pos.y 
+    // otherwise it is not visible because it is too close / behind camera
+    // | negative z-values | when greater than radius + cam.pos.y are also visible.... which one shouldnt be though ?
+    // i think negative should be visible and positive not
 
-    Sphere newSphere4(50.0f, glm::vec3(-350.0f, 160.0f, 10.0f), glm::vec3(255, 255, 204));
+    Sphere newSphere(50.0f, glm::vec3(20.0f, 50.0f, 0.0f), glm::vec3(255, 204, 255));
+    Sphere newSphere2(60.0f, glm::vec3(250.0f, 60.0f, 100.0f), glm::vec3(255, 0, 0));
+    Sphere newSphere3(70.0f, glm::vec3(300.0f, 75.0f, 100.0f), glm::vec3(0, 255, 0));
+    Sphere newSphere4(50.0f, glm::vec3(-350.0f, 160.0f, -1.0f), glm::vec3(255, 255, 204));
+
+    // Sphere newSphere(50.0f, glm::vec3(20.0f, 25.0f, 100.0f), glm::vec3(255, 204, 255));
+    // Sphere newSphere2(60.0f, glm::vec3(250.0f, 20.0f, -10.0f), glm::vec3(255, 0, 0));
+    // Sphere newSphere3(70.0f, glm::vec3(300.0f, 75.0f, 1.0f), glm::vec3(0, 255, 0));
+    // Sphere newSphere4(50.0f, glm::vec3(-350.0f, 160.0f, -1.0f), glm::vec3(255, 255, 204));
 
     vector<glm::vec3> vertices = {
         glm::vec3(1000.0f, 800.0f, 0.0f), 
@@ -168,12 +179,12 @@ Scene generateOrthographic(){
     Triangle newTriangle(vertices, glm::vec3(255.0, 0.0, 0.0));
 
 
-    glm::vec3 floorPosition(-400.0f, 0.0f, -50.0f); 
+    glm::vec3 floorPosition(-400.0f, 0.0f, 1.0f); 
     glm::vec3 floorNormal(0.0f, 1.0f, 0.0f);
     glm::vec3 floorColor(100, 100, 100);
 
     // Create a Plane object with the specified parameters
-    Plane floor(1600.0f, 1600.0f, floorPosition, normalize(floorNormal), floorColor);
+    Plane floor(800.0f, 800.0f, floorPosition, normalize(floorNormal), floorColor);
 
     Scene scene(make_shared<Camera>(camera));
     
@@ -190,27 +201,34 @@ Scene generateOrthographic(){
 Scene generatePerspective(){
     // perspective cams
     // bigger z = moving farther away from scene . moving towards screen (me)
-    Camera camera(glm::vec3(0.0f, 700.0f, 1500.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    //Camera camera(glm::vec3(0.0f, 700.0f, 1500.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
+
+    Camera camera(glm::vec3(0.0f, 100.0f, 1000.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
 
     // not this one
     //Camera camera(glm::vec3(0.0f, 100.0f, 200.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-    // z closer to zero == closer to camera 
+ 
     // positive z is coming out towards screen... so closer ?
-    Sphere newSphere(300.0f, glm::vec3(200.0f, 300.0f, 40.0f), glm::vec3(255, 204, 255));
-    Sphere newSphere2(200.0f, glm::vec3(-500.0f, 200.0f, 60.0), glm::vec3(255, 0, 0));
-    Sphere newSphere3(100.0f, glm::vec3(350.0f, 200.0f, 200.0f), glm::vec3(0, 255, 0));
+    // bigger z == closer to camera == bigger
+    Sphere newSphere(50.0f, glm::vec3(100.0f, 50.0f, 200.0f), glm::vec3(255, 204, 255));
+    Sphere newSphere2(20.0f, glm::vec3(-100.0f, 20.0f, 60.0), glm::vec3(255, 0, 0));
+    Sphere newSphere3(40.0f, glm::vec3(0.0f, 40.0f, 200.0f), glm::vec3(0, 255, 0));
 
-    Sphere newSphere4(50.0f, glm::vec3(-700.0f, 600.0f, 1.0f), glm::vec3(255, 255, 204));
+    Sphere newSphere4(50.0f, glm::vec3(-200.0f, 50.0f, 1.0f), glm::vec3(255, 255, 204));
 
     
     vector<glm::vec3> vertices = {
-        glm::vec3(1000.0f, 800.0f, 0.0f), 
-        glm::vec3(1400.0f, 0.0f, 0.0f), 
-        glm::vec3(600.0f, 0.0f, 0.0f)
+        glm::vec3(350.0f, 400.0f, 0.0f),
+        glm::vec3(500.0f, 0.0f, 0.0f),
+        glm::vec3(200.0f, 0.0f, 0.0f),
+        glm::vec3(350.0f, 0.0f, 300.0f)
     };
 
-    Triangle newTriangle(vertices, glm::vec3(255.0, 0.0, 0.0));
+
+    Triangle tri1(vector<glm::vec3>{vertices[0], vertices[1], vertices[2]}, glm::vec3(255, 204, 255));
+    Triangle tri2(vector<glm::vec3>{vertices[0], vertices[1], vertices[3]}, glm::vec3(255, 204, 255));
+    Triangle tri3(vector<glm::vec3>{vertices[0], vertices[2], vertices[3]}, glm::vec3(255, 204, 255));
+    Triangle tri4(vector<glm::vec3>{vertices[1], vertices[2], vertices[3]}, glm::vec3(255, 204, 255));
 
 
     glm::vec3 floorPosition(-400.0f, 0.0f, 0.0f); 
@@ -220,8 +238,11 @@ Scene generatePerspective(){
     // Create a Plane object with the specified parameters
     Plane floor(1600.0f, 1600.0f, floorPosition, normalize(floorNormal), floorColor);
 
-    Scene scene(make_shared<Camera>(camera));    
-    scene.addObj(make_shared<Triangle>(newTriangle));
+    Scene scene(make_shared<Camera>(camera));
+    scene.addObj(make_shared<Triangle>(tri1));
+    scene.addObj(make_shared<Triangle>(tri2));
+    scene.addObj(make_shared<Triangle>(tri3));
+    scene.addObj(make_shared<Triangle>(tri4));
     scene.addObj(make_shared<Sphere>(newSphere));
     scene.addObj(make_shared<Sphere>(newSphere2));
     scene.addObj(make_shared<Sphere>(newSphere3));
@@ -233,20 +254,20 @@ Scene generatePerspective(){
 
 
 void generateCams(Scene& scene){
-    float radius = 50.0f; 
-    float angle = 0.0f;
+    float radius = 800.0f; 
+    float angle = 30.0f;
     while (angle < 360){
         float x = radius * std::cos(angle * (M_PI / 180.0f));
         float z =  radius * std::sin(angle * (M_PI / 180.0f));
 
-        scene.addNewCam(glm::vec3(x, 30.0f, z), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        scene.addNewCam(glm::vec3(x, 200.0f, z), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
 
-        angle += 1;
+        angle += 10;
     }
-    // while (angle < 360){
-    //     float z =  angle;
-    //     scene.addNewCam(glm::vec3(0.0f, 20.0f, z), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    //     angle += 10;
+    // while (angle > -500){
+    //     float a =  angle;
+    //     scene.addNewCam(glm::vec3(0.0f, 100.0f, a), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
+    //     angle -= 50;
     // }
 }
 
@@ -256,24 +277,14 @@ void rayTrace(Scene scene){
      // Create the image (RGB Array) to be displayed
     unsigned char* image = new unsigned char[PIX_WIDTH*PIX_HEIGHT*3];
 
-    float u , v;
-    float r = SCR_WIDTH;
-    float l = -r;
-    float t = SCR_HEIGHT;
-    float b = -t;
-
-
-    glm::vec3 camU, camV, camW;
-    scene.getCam()->getCameraBasis(camU, camV, camW);
-
-
     // i think this is like the light direction
     // perspective cam light
-    //glm::vec3 ptLight = {-200.0f, 300.0f, -550.0f};
+    glm::vec3 ptLight = {-300.0f, 300.0f, 50.0f};
+    //glm::vec3 ptLight = {0.0f, 100.0f, 300.0f};
 
     // i think this is like the light direction
     // ortho cam light
-    glm::vec3 ptLight = {-200.0f, 200.0f, 50.0f};
+    //glm::vec3 ptLight = {-200.0f, 200.0f, 50.0f};
 
     for (int j = 0; j < PIX_HEIGHT; j++){
         for (int i = 0; i < PIX_WIDTH; i++){
@@ -285,11 +296,6 @@ void rayTrace(Scene scene){
             // s - e = ray direction
             // s is point on img plane 
 
-            // pixel at position (i, j) in the raster image has the pos: 
-            u = l + ((r-l) * (i+0.5))/static_cast<float>(PIX_WIDTH);
-            v = b + ((t-b) * (j+0.5))/static_cast<float>(PIX_HEIGHT);
-
-
             //Ray ray(scene.getCam()->getPos(), glm::normalize(glm::vec3{u, v, -1.0f} - scene.getCam()->getPos()));
 
             // where (u, v) are coordinates of the pixel's pos on the image plane
@@ -298,11 +304,9 @@ void rayTrace(Scene scene){
 
             // i, j are the origin's wrt pixel -- screen
 
-            // orthographic
-            Ray ray (scene.getCam()->getPos() + (u * camU) + (v * camV), camW);
+            Ray ray = scene.getCam()->generateRay(i, j, PIX_WIDTH, PIX_HEIGHT);
 
-            // for perspective
-            //Ray ray (scene.getCam()->getPos(), glm::normalize(camU * u + camV * v + camW * -800.0f));
+           
 
             //Ray ray(scene.getCam()->getPos(), glm::normalize(u * camU + v * camV + camW));
 
@@ -317,6 +321,7 @@ void rayTrace(Scene scene){
                 // ambient, diffuse, specular, shadows all for just 1 light source
 
                 glm::vec3 lightDir = normalize(ptLight - hit.hitPt);
+                
                 glm::vec3 L = {0, 0, 0};
                 Material mat = hit.material;
 
@@ -330,7 +335,8 @@ void rayTrace(Scene scene){
 
                 // Specular
                 glm::vec3 vh = (ptLight + hit.hitPt)/glm::length(ptLight + hit.hitPt);
-                L += mat.specularI * mat.specularColor * max(0.0f, glm::pow(glm::dot(hit.normal, vh), mat.p));
+                //glm::vec3 vh = glm::normalize(lightDir + glm::normalize(ray.getDir()));
+                L += mat.specularI * mat.specularColor * max(0.0f, glm::pow(glm::dot(vh, hit.normal), mat.p));
 
                 // shadows
                 Ray shadowRay = Ray(hit.hitPt, ptLight);
@@ -343,12 +349,14 @@ void rayTrace(Scene scene){
                 int limit = 1;
                 hit.reflectance = scene.reflectRay(ray, hit, limit); 
                 // mirror
-                L += 0.1f * hit.reflectance;
+                 L += 0.01f * hit.reflectance;
+                //L *= hit.reflectance;
+                //L += mat.specularI * glm::normalize(mat.specularColor * hit.reflectance) * hit.reflectance;
             
-                // glm::vec3 correctedColor = glm::pow(L, glm::vec3(1.0f / 2.0f));
-                // L = glm::clamp(correctedColor, 0.0f, 255.0f);
+                glm::vec3 correctedColor = glm::pow(L, glm::vec3(1.0f / 1.0f));
+                L = glm::clamp(correctedColor, 0.0f, 255.0f);
 
-                L = glm::clamp(L, 0.0f, 255.0f);
+                //L = glm::clamp(L, 0.0f, 255.0f);
 
 
                 hit.material.L = L;

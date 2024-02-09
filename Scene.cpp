@@ -35,7 +35,7 @@ HitResult Scene::traceRay(Ray& ray, float tmin, float tmax) {
 glm::vec3 Scene::reflectRay(Ray& ray, HitResult& hit, int& limit) {
     if (limit > 0) {
         //glm::vec3 reflectDir = ray.getDir() - 2.0f * glm::dot(ray.getDir(), hit.normal) * hit.normal;
-        glm::vec3 reflectDir = hit.normal * -2.0f * glm::dot(hit.normal, ray.getDir()) + ray.getDir();
+        glm::vec3 reflectDir = ray.getDir() - 2.0f * glm::dot(ray.getDir(), hit.normal) * hit.normal;
         Ray reflectRay(hit.hitPt, reflectDir);
         HitResult reflectHit = traceRay(reflectRay, 0.001f, FLT_MAX);
         if (reflectHit.hit){
@@ -47,8 +47,8 @@ glm::vec3 Scene::reflectRay(Ray& ray, HitResult& hit, int& limit) {
 }
 
 
-void Scene::addNewCam(glm::vec3 pos, glm::vec3 target, glm::vec3 up){
-    cameras.push_back(make_shared<Camera>(Camera(pos, target, up)));
+void Scene::addNewCam(glm::vec3 pos, glm::vec3 lookAt, glm::vec3 up, float FOV, unsigned int w, unsigned int h){
+    cameras.push_back(make_shared<Camera>(Camera(pos, lookAt, up, FOV, w, h)));
 }
 
 void Scene::nextCam(){

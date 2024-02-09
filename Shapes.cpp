@@ -120,7 +120,6 @@ HitResult Plane::intersect(Ray& ray, float& tmin, float& tmax) const {
     return hitResult;
 }
 
-
 Triangle::Triangle(vector<glm::vec3> vertices, glm::vec3 rgb){
     this->vertices = vertices;
     this->material = Material(rgb);
@@ -160,7 +159,7 @@ HitResult Triangle::intersect(Ray& ray, float& tmin, float& tmax) const {
         hitRes.hit = true;
         hitRes.t = t;
         hitRes.hitPt = ray.evaluate(t);
-        //hitRes.normal = glm::normalize(hitRes.hitPt);
+        hitRes.normal = glm::normalize(glm::cross((vertices[1] - vertices[0]), (vertices[2] - vertices[0])));
     }
 
     return hitRes;

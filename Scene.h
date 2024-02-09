@@ -11,6 +11,9 @@
 #include "Shapes.h"
 #include "Camera.h"
 #include "Hits.h"
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 using namespace std;
 
 
@@ -24,7 +27,7 @@ public:
 
     shared_ptr<Camera> getCam();
 
-    void addNewCam(glm::vec3 pos, glm::vec3 target, glm::vec3 up);
+    void addNewCam(glm::vec3 pos, glm::vec3 lookAt, glm::vec3 up, float FOV, unsigned int w, unsigned int h);
     void nextCam();
 
 private:
