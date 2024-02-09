@@ -46,6 +46,7 @@ public:
 	
 private:
 	vector<glm::vec3> vertices;
+	glm::vec3 normal;
 };
 
 class Sphere : public Surface {

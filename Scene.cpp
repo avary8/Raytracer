@@ -25,6 +25,7 @@ HitResult Scene::traceRay(Ray& ray, float tmin, float tmax) {
         if (objectHit.hit && objectHit.t < hitRes.t) {
             hitRes = objectHit;
             hitRes.material = object->getMaterial();
+            tmax = objectHit.t;
         }
     }
     return hitRes;
@@ -38,7 +39,8 @@ glm::vec3 Scene::reflectRay(Ray& ray, HitResult& hit, int& limit) {
         Ray reflectRay(hit.hitPt, reflectDir);
         HitResult reflectHit = traceRay(reflectRay, 0.001f, FLT_MAX);
         if (reflectHit.hit){
-            return reflectHit.material.L;
+            limit -= 1;
+            return reflectHit.material.L + this->reflectRay(ray, reflectHit, limit);
         }
     }
     return hit.material.L;

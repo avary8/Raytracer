@@ -123,17 +123,45 @@ HitResult Plane::intersect(Ray& ray, float& tmin, float& tmax) const {
 
 Triangle::Triangle(vector<glm::vec3> vertices, glm::vec3 rgb){
     this->vertices = vertices;
-    material = Material(rgb);
+    this->material = Material(rgb);
+    this->normal = glm::cross(vertices[0], vertices[1]);
 }
 
 HitResult Triangle::intersect(Ray& ray, float& tmin, float& tmax) const {
     HitResult hitRes;
     hitRes.hit = false;
-    float t, t2;
     // p = ray's origin
+    float a = vertices[0].x - vertices[1].x;
+    float b = vertices[0].y - vertices[1].y;
+    float c = vertices[0].z - vertices[1].z;
 
-    
+    float d = vertices[0].x - vertices[2].x;
+    float e = vertices[0].y - vertices[2].y;
+    float f = vertices[0].z - vertices[2].z;
 
+    float g = ray.getDir().x;
+    float h = ray.getDir().y;
+    float i = ray.getDir().z;
+
+    float j = vertices[0].x - ray.getOrigin().x;
+    float k = vertices[0].y - ray.getOrigin().y;
+    float l = vertices[0].z - ray.getOrigin().z;
+
+
+    float M = a * ((e * i)-(h * f)) + b * ((g * f) - (d * i) + c * ((d * h) - (e * g)));
+
+    float beta = (j * ((e * i) - (h * f)) + k * ((g * f) - (d * i)) + l * ((d * h) - (e * g))) / M;
+
+    float gamma = (i * ((a * k) - (j * b)) + h * ((j * c) - (a * l)) + g * ((b * l) - (k * c))) / M;
+
+    float t = -(f * ((a * k) - (j * b)) + e * ((j * c) - (a * l)) + d * ((b * l) - (k * c))) / M;
+
+    if (t > tmin && t < tmax && gamma > 0 && gamma < 1 && beta > 0 && beta < 1-gamma){
+        hitRes.hit = true;
+        hitRes.t = t;
+        hitRes.hitPt = ray.evaluate(t);
+        //hitRes.normal = glm::normalize(hitRes.hitPt);
+    }
 
     return hitRes;
 }
