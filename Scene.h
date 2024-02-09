@@ -19,14 +19,18 @@ using namespace std;
 
 class Scene {
 public:
-    Scene(shared_ptr<Camera> cam);
+    Scene(shared_ptr<OrthoCam> cam, shared_ptr<Camera> cam2);
     void addObj(shared_ptr<Surface> newObj);
+    void addLight(shared_ptr<glm::vec3> light);
+    vector<shared_ptr<glm::vec3>> getLights();
 
     HitResult traceRay(Ray& ray, float tmin, float tmax);
     glm::vec3 reflectRay(Ray& ray, HitResult& hit, int& limit);
 
-    shared_ptr<Camera> getCam();
+    void switchPerspective();
 
+    shared_ptr<Camera> getCam();
+    void clearCams();
     void addNewCam(glm::vec3 pos, glm::vec3 lookAt, glm::vec3 up, float FOV, unsigned int w, unsigned int h);
     void nextCam();
 
@@ -34,6 +38,11 @@ private:
     shared_ptr<Camera> currCam;
     vector<shared_ptr<Surface>> objects;
     vector<shared_ptr<Camera>> cameras;
+    vector<shared_ptr<glm::vec3>> lights;
+
+    shared_ptr<OrthoCam> orthoCam;
+    shared_ptr<Camera> perspectCam;
+
 
     //std::vector<Light> lights;
     glm::vec3 backgroundColor = {153, 153, 255};

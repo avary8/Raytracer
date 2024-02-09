@@ -6,7 +6,7 @@ Ray::Ray(glm::vec3 origin, glm::vec3 dir){
 }
 
 glm::vec3 Ray::evaluate(float t){
-    return  origin + t*dir;
+    return origin + t*dir;
 }
 
 glm::vec3 Ray::getOrigin(){

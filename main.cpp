@@ -24,10 +24,8 @@ using namespace std;
 #endif
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow *window);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 Scene createScene();
-Scene generateOrthographic();
-Scene generatePerspective();
 void generateCams(Scene& scene);
 void rayTrace(Scene scene);
 void initOpenGLstuff(GLFWwindow*& window, unsigned int& texture, unsigned int& shaderProgram, unsigned int& VBO, unsigned int& VAO, unsigned int& EBO);
@@ -35,8 +33,8 @@ void initOpenGLstuff(GLFWwindow*& window, unsigned int& texture, unsigned int& s
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 800;
-const unsigned int PIX_WIDTH = 800;
-const unsigned int PIX_HEIGHT = 800;
+const unsigned int PIX_WIDTH = 512;
+const unsigned int PIX_HEIGHT = 512;
 const float FOV = 60.0f;
 
 const char *vertexShaderSource = "#version 330 core\n"
@@ -62,6 +60,10 @@ const char *fragmentShaderSource = "#version 330 core\n"
     "   FragColor = texture(texture1, TexCoord);\n"
     "}\n\0";
 
+struct CallbackParameters {
+    GLFWwindow *window;
+    Scene* scene;
+};
 
 
 int main(){
@@ -72,13 +74,18 @@ int main(){
     initOpenGLstuff(window, texture, shaderProgram, VBO, VAO, EBO);
     
     Scene scene = createScene();
+    CallbackParameters callbackParams;
+    callbackParams.window = window;
+    callbackParams.scene = &scene;
 
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window)){
         // input
         // -----
-        processInput(window);
+        glfwSetWindowUserPointer(window, &callbackParams);
+        glfwSetKeyCallback(window, key_callback);
+
         // float deltaTime = glfwGetTime();
         // glfwSetTime(0.0);
         // currInterval += deltaTime;
@@ -101,7 +108,8 @@ int main(){
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
+        // ------------------------------------------------------------------------------
+        glFlush();
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -118,12 +126,16 @@ int main(){
     return 0;
 }
 
-
-
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-void processInput(GLFWwindow *window){
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    CallbackParameters* params = static_cast<CallbackParameters*>(glfwGetWindowUserPointer(window));
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS){
         glfwSetWindowShouldClose(window, true);
+    } else if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+        params->scene->switchPerspective();
+    } else if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+        params->scene->clearCams();
+        generateCams(*params->scene);
+    }
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -134,38 +146,24 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 }
 
 Scene createScene(){
-    Scene orthoScene = generateOrthographic();
-    //Scene perspectiveScene = generatePerspective();
-
-    generateCams(orthoScene);
-    return orthoScene;
-}
-
-Scene generateOrthographic(){
     // maybe make this so you make scene and then ask scene to make this stuff ? idk
     // Camera camera (width, height, pos, lookAt, up, fov);
     //Camera camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -0.4f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 60.0f);
     // > positive z makes camera walk away from scene and towards (screen (me))
     // ^ zooming out
     // when we go negative z. we walk to the other side basically . and the objects are flipped because we are viewing from diff side
-    Camera camera(glm::vec3(0.0f, 3.0f, 10.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT); 
 
-    // look from above so that z-axis is now up and down
-    //Camera camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 200.0f, 100.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), 60.0f);
+    /*-------------------------Camera Init-------------------------*/
+    OrthoCam orthoCam(glm::vec3(0.0f, 5.0f, 30.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT); 
 
-    // z closer to zero == closer to camera 
-    // positive z is coming out towards screen... so closer ?
-    // a visible object origin z-value NEEDS to be > radius + camera.pos.y 
-    // otherwise it is not visible because it is too close / behind camera
-    // | negative z-values | when greater than radius + cam.pos.y are also visible.... which one shouldnt be though ?
-    // i think negative should be visible and positive not
+    // perspective cams
+    // bigger z = moving farther away from scene . moving towards screen (me)
+    //Camera camera(glm::vec3(0.0f, 700.0f, 1500.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
+    Camera perspectCam(glm::vec3(0.0f, 100.0f, 1000.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
 
-    // Sphere newSphere(50.0f, glm::vec3(20.0f, 50.0f, 0.0f), glm::vec3(255, 204, 255));
-    // Sphere newSphere2(60.0f, glm::vec3(250.0f, 60.0f, 100.0f), glm::vec3(255, 0, 0));
-    // Sphere newSphere3(70.0f, glm::vec3(300.0f, 75.0f, 100.0f), glm::vec3(0, 255, 0));
-    // Sphere newSphere4(50.0f, glm::vec3(-350.0f, 160.0f, -1.0f), glm::vec3(255, 255, 204));
+    /*-------------------------Shape Init-------------------------*/
 
-    Sphere newSphere(25.0f, glm::vec3(100.0f, 50.0f, 0.0f), glm::vec3(255, 204, 255));
+    Sphere newSphere(25.0f, glm::vec3(100.0f, 50.0f, 10.0f), glm::vec3(20, 20, 255));
     Sphere newSphere2(20.0f, glm::vec3(-100.0f, 20.0f, 0.0), glm::vec3(255, 0, 0));
     Sphere newSphere3(40.0f, glm::vec3(0.0f, 40.0f, 0.0f), glm::vec3(0, 255, 0));
 
@@ -187,12 +185,14 @@ Scene generateOrthographic(){
 
     glm::vec3 floorPosition(-400.0f, 0.0f, 0.0f); 
     glm::vec3 floorNormal(0.0f, 1.0f, 0.0f);
-    glm::vec3 floorColor(100, 100, 100);
-
-    // Create a Plane object with the specified parameters
+    glm::vec3 floorColor(200, 200, 200);
     Plane floor(800.0f, 800.0f, floorPosition, normalize(floorNormal), floorColor);
 
-    Scene scene(make_shared<Camera>(camera));
+    /*---------------Saving to Scene------------*/
+    Scene scene(make_shared<OrthoCam>(orthoCam), make_shared<Camera>(perspectCam));
+    scene.addLight(make_shared<glm::vec3>(glm::vec3{-100.0f, 300.0f, 50.0f}));
+    scene.addLight(make_shared<glm::vec3>(glm::vec3{100.0f, 300.0f, 50.0f}));
+    scene.addLight(make_shared<glm::vec3>(glm::vec3{0.0f, 10.0f, 0.0f}));
 
     scene.addObj(make_shared<Triangle>(tri1));
     scene.addObj(make_shared<Triangle>(tri2));
@@ -204,81 +204,35 @@ Scene generateOrthographic(){
     scene.addObj(make_shared<Sphere>(newSphere4));
     scene.addObj(make_shared<Plane>(floor));
 
+    //generateCams(scene);
     return scene;
 }
 
-Scene generatePerspective(){
-    // perspective cams
-    // bigger z = moving farther away from scene . moving towards screen (me)
-    //Camera camera(glm::vec3(0.0f, 700.0f, 1500.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
+            /* orthographic notes */
+    // z closer to zero == closer to camera 
+    // positive z is coming out towards screen... so closer ?
+    // a visible object origin z-value NEEDS to be > radius + camera.pos.y 
+    // otherwise it is not visible because it is too close / behind camera
+    // | negative z-values | when greater than radius + cam.pos.y are also visible.... which one shouldnt be though ?
+    // i think negative should be visible and positive not
 
-    Camera camera(glm::vec3(0.0f, 100.0f, 1000.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
-
-    // not this one
-    //Camera camera(glm::vec3(0.0f, 100.0f, 200.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+             /* perspective notes */
  
     // positive z is coming out towards screen... so closer ?
     // bigger z == closer to camera == bigger
-    Sphere newSphere(50.0f, glm::vec3(100.0f, 50.0f, 200.0f), glm::vec3(255, 204, 255));
-    Sphere newSphere2(20.0f, glm::vec3(-100.0f, 20.0f, 60.0), glm::vec3(255, 0, 0));
-    Sphere newSphere3(40.0f, glm::vec3(0.0f, 40.0f, 200.0f), glm::vec3(0, 255, 0));
 
-    Sphere newSphere4(50.0f, glm::vec3(-200.0f, 50.0f, 1.0f), glm::vec3(255, 255, 204));
-
-    
-    vector<glm::vec3> vertices = {
-        glm::vec3(350.0f, 400.0f, 0.0f),
-        glm::vec3(500.0f, 0.0f, 0.0f),
-        glm::vec3(200.0f, 0.0f, 0.0f),
-        glm::vec3(350.0f, 0.0f, 300.0f)
-    };
-
-
-    Triangle tri1(vector<glm::vec3>{vertices[0], vertices[1], vertices[2]}, glm::vec3(255, 204, 255));
-    Triangle tri2(vector<glm::vec3>{vertices[0], vertices[1], vertices[3]}, glm::vec3(255, 204, 255));
-    Triangle tri3(vector<glm::vec3>{vertices[0], vertices[2], vertices[3]}, glm::vec3(255, 204, 255));
-    Triangle tri4(vector<glm::vec3>{vertices[1], vertices[2], vertices[3]}, glm::vec3(255, 204, 255));
-
-
-    glm::vec3 floorPosition(-400.0f, 0.0f, 0.0f); 
-    glm::vec3 floorNormal(0.0f, 1.0f, 0.0f);
-    glm::vec3 floorColor(100, 100, 100);
-
-    // Create a Plane object with the specified parameters
-    Plane floor(1600.0f, 1600.0f, floorPosition, normalize(floorNormal), floorColor);
-
-    Scene scene(make_shared<Camera>(camera));
-    scene.addObj(make_shared<Triangle>(tri1));
-    scene.addObj(make_shared<Triangle>(tri2));
-    scene.addObj(make_shared<Triangle>(tri3));
-    scene.addObj(make_shared<Triangle>(tri4));
-    scene.addObj(make_shared<Sphere>(newSphere));
-    scene.addObj(make_shared<Sphere>(newSphere2));
-    scene.addObj(make_shared<Sphere>(newSphere3));
-    scene.addObj(make_shared<Sphere>(newSphere4));
-    scene.addObj(make_shared<Plane>(floor));
-
-    return scene;
-}
 
 
 void generateCams(Scene& scene){
-    // perspective
-    //float radius = 800.0f; 
-    // ortho
-    float radius = 20.0f; 
+    float radius = scene.getCam()->getPos().z;
     float angle = 0.0f;
     while (angle < 360){
         float x = radius * std::cos(angle * (M_PI / 180.0f));
         float z =  radius * std::sin(angle * (M_PI / 180.0f));
+        
+        scene.addNewCam(glm::vec3(x, scene.getCam()->getPos().y, z), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
 
-        // perspective
-        //scene.addNewCam(glm::vec3(x, 200.0f, z), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
-
-        // ortho
-        scene.addNewCam(glm::vec3(x, 20.0f, z), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
-
-        angle += 10;
+        angle += 10.0f;
     }
     // while (angle > 0){
     //     float a =  angle;
@@ -293,88 +247,51 @@ void rayTrace(Scene scene){
      // Create the image (RGB Array) to be displayed
     unsigned char* image = new unsigned char[PIX_WIDTH*PIX_HEIGHT*3];
 
-    // i think this is like the light direction
-    // perspective cam light
-    glm::vec3 ptLight = {-300.0f, 300.0f, 50.0f};
-    //glm::vec3 ptLight = {0.0f, 100.0f, 300.0f};
-
-    // i think this is like the light direction
-    // ortho cam light
-    //glm::vec3 ptLight = {-200.0f, 200.0f, 50.0f};
-
     for (int j = 0; j < PIX_HEIGHT; j++){
         for (int i = 0; i < PIX_WIDTH; i++){
-            // get u and v --> screen coordinates 
-            // u and v are just a point . like (50 , 9)
-
-            // p(t) = e + t(s-e)
-            // e = ray origin 
-            // s - e = ray direction
-            // s is point on img plane 
-
-            //Ray ray(scene.getCam()->getPos(), glm::normalize(glm::vec3{u, v, -1.0f} - scene.getCam()->getPos()));
-
-            // where (u, v) are coordinates of the pixel's pos on the image plane
-            // u = i;
-            // v = j;
-
-            // i, j are the origin's wrt pixel -- screen
-
             Ray ray = scene.getCam()->generateRay(i, j, PIX_WIDTH, PIX_HEIGHT);
-
-           
-
-            //Ray ray(scene.getCam()->getPos(), glm::normalize(u * camU + v * camV + camW));
-
-
-            // ... (Intersection testing, shading, etc.)
             HitResult hit = scene.traceRay(ray, .001, FLT_MAX);
-        
-            // If an intersection is found, get hit information
+
             if (hit.hit) {
-                //cout << "i: " << i << " :j: " << j << " : hit" << endl;
-
-                // ambient, diffuse, specular, shadows all for just 1 light source
-
-                glm::vec3 lightDir = normalize(ptLight - hit.hitPt);
-                
-                glm::vec3 L = {0, 0, 0};
                 Material mat = hit.material;
+                vector<shared_ptr<glm::vec3>> lights = scene.getLights();
+                glm::vec3 L = {0, 0, 0};
 
-                // Ambient
-                L = mat.ambientColor * mat.ambientI;
-
-                //glm::vec3 l = (ptLight-hit.hitPt)/glm::normalize(ptLight-hit.hitPt);
-
-                // Diffuse
-                L += mat.diffuseI * mat.diffuseColor * max(0.0f, glm::dot(lightDir, hit.normal));
-
-                // Specular
-                glm::vec3 vh = (ptLight + hit.hitPt)/glm::length(ptLight + hit.hitPt);
-                //glm::vec3 vh = glm::normalize(lightDir + glm::normalize(ray.getDir()));
-                L += mat.specularI * mat.specularColor * max(0.0f, glm::pow(glm::dot(vh, hit.normal), mat.p));
-
-                // shadows
-                Ray shadowRay = Ray(hit.hitPt, ptLight);
-                HitResult shadowHit = scene.traceRay(shadowRay, .001, FLT_MAX);
-                if (shadowHit.hit){
-                    //L *= 0.85;
+                for (int i = 0; i < lights.size(); i++){
+                    glm::vec3 ptLight = *lights[i];
+                    glm::vec3 lightDir = normalize(ptLight - hit.hitPt);
+                  
+                    // Ambient
                     L = mat.ambientColor * mat.ambientI;
+
+                    // Diffuse
+                    L += mat.diffuseI * mat.diffuseColor * max(0.0f, glm::dot(lightDir, hit.normal));
+
+                    // Specular
+                    glm::vec3 vh = (ptLight + hit.hitPt)/glm::length(ptLight + hit.hitPt);
+                    //glm::vec3 vh = glm::normalize(lightDir + glm::normalize(ray.getDir()));
+                    L += mat.specularI * mat.specularColor * max(0.0f, glm::pow(glm::dot(vh, hit.normal), mat.p));
+
+                    // shadows
+                    Ray shadowRay = Ray(hit.hitPt, ptLight);
+                    HitResult shadowHit = scene.traceRay(shadowRay, .001, FLT_MAX);
+                    if (shadowHit.hit){
+                        //L *= 0.85;
+                        L = mat.ambientColor * mat.ambientI;
+                    }
+
+                    int limit = 1;
+                    hit.reflectance = scene.reflectRay(ray, hit, limit); 
+                    // mirror
+                    L += 0.03f * hit.reflectance;
+                    //L *= hit.reflectance;
+                    //L += mat.specularI * glm::normalize(mat.specularColor * hit.reflectance) * hit.reflectance;
                 }
 
-                int limit = 1;
-                hit.reflectance = scene.reflectRay(ray, hit, limit); 
-                // mirror
-                 L += 0.01f * hit.reflectance;
-                //L *= hit.reflectance;
-                //L += mat.specularI * glm::normalize(mat.specularColor * hit.reflectance) * hit.reflectance;
-            
                 glm::vec3 correctedColor = glm::pow(L, glm::vec3(1.0f / 1.0f));
                 L = glm::clamp(correctedColor, 0.0f, 255.0f);
 
                 //L = glm::clamp(L, 0.0f, 255.0f);
-
-
                 hit.material.L = L;
                 
 

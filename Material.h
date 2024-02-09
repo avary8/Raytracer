@@ -25,8 +25,8 @@ public:
     glm::vec3 diffuseColor;
     glm::vec3 specularColor;
 
-    float ambientI = 0.4;
-    float diffuseI = 0.3;
+    float ambientI = 0.2;
+    float diffuseI = 0.4;
     float specularI = 0.4;
 
     glm::vec3 L;

@@ -61,4 +61,3 @@ private:
 	glm::vec3 origin;
 	float radius;
 };
-

@@ -12,12 +12,12 @@ class Camera {
 public:
     Camera(){};
     Camera(glm::vec3 pos, glm::vec3 lookAt, glm::vec3 up, float fov, int width, int height);
-    Ray generateRay(int i, int j, int pixWidth, int pixHeight);
+    virtual Ray generateRay(int i, int j, int pixWidth, int pixHeight);
 
     glm::vec3 getPos();
     glm::vec3 getDir();
     
-private:
+protected:
     glm::vec3 pos = glm::vec3(0.0f, 20.0f, 3.0f);
     glm::vec3 dir = glm::vec3(0.0f, 0.0f, 1.0f); // w
     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f); // v
@@ -30,5 +30,11 @@ private:
     float h;
     float w;
     float l, r, t, b;
+};
 
+
+class OrthoCam : public Camera {
+public:
+    using Camera::Camera;
+    virtual Ray generateRay(int i, int j, int pixWidth, int pixHeight);
 };
