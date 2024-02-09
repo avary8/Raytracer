@@ -35,11 +35,11 @@ Ray Camera::generateRay(int i, int j, int pixWidth, int pixHeight){
     // v = (j-PIX_HEIGHT) +0.5f;
 
     // orthographic
-    //Ray ray (this->pos + (u * this->right) + (v * this->up), this->dir);
+    Ray ray (this->pos + (u * this->right) + (v * this->up), this->dir);
 
     // for perspective
     //Ray ray (this->pos, glm::normalize(this->right * u + this->up * v + this->dir * -800.0f));
-    Ray ray (this->pos, glm::normalize(this->right * u + this->up * v + this->dir * -600.0f));
+    //Ray ray (this->pos, glm::normalize(this->right * u + this->up * v + this->dir * -600.0f));
 
     //Ray ray (this->pos, glm::normalize(this->dir + u * w * this->right + v * this->h * this->up));
 
