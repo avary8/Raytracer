@@ -12,8 +12,8 @@ void Scene::addObj(const shared_ptr<Surface>& newObj){
     this->objects.push_back(newObj);
 }
 
-void Scene::addLight(const shared_ptr<glm::vec3>& light){
-    this->lights.push_back(light);
+void Scene::addLight(const shared_ptr<glm::vec3>& pos){
+    this->lights.push_back(pos);
 }
 
 vector<shared_ptr<glm::vec3>>& Scene::getLights(){
@@ -26,17 +26,11 @@ HitResult Scene::traceRay(Ray& ray, float tmin, float tmax) {
     Surface obj;
     for (const auto& object : objects) {
         HitResult objectHit = object->intersect(ray, tmin, tmax);
-        // if (objectHit.hit && object->getRgb()[1] == 0 ){
-        //     if (objectHit.t > hitRes.t){
-        //         cout << "objectHit t: " << objectHit.t << " hitRes t:  " << hitRes.t << endl;
-        //     }
-        // }
         if (objectHit.hit && objectHit.t < hitRes.t) {
             hitRes = objectHit;
             hitRes.material = object->getMaterial();
             tmax = objectHit.t;
         }
-        
     }
     return hitRes;
 }
@@ -48,47 +42,43 @@ glm::vec3 Scene::shadeRay(Ray& ray, float tmin, float tmax, int& limit) {
     if (hit.hit){
         Material mat = hit.material;
         for (int i = 0; i < lights.size(); i++){
-            glm::vec3 ptLight = *lights[i];
-            glm::vec3 lightDir = normalize(ptLight - hit.hitPt);
+            glm::vec3 light = *lights[i];
+            glm::vec3 lightDir = normalize(light - hit.hitPt);
             
             // Ambient
             L += mat.ambientColor * mat.ambientI;
 
             // shadows
-            Ray shadowRay = Ray(hit.hitPt, ptLight);
+            Ray shadowRay = Ray(hit.hitPt, light);
             HitResult shadowHit = traceRay(shadowRay, tmin, tmax);
             if (shadowHit.hit){
-                //L *= 0.6;
+                //L *= 0.5;
                 //L += mat.ambientColor * mat.ambientI;
             } else {
                 // Diffuse
-            L += mat.diffuseI * mat.diffuseColor * max(0.0f, glm::dot(lightDir, hit.normal));
+                L += mat.diffuseI * mat.diffuseColor * max(0.0f, glm::dot(lightDir, hit.normal));
 
-            // Specular
-            glm::vec3 vh = (ptLight + hit.hitPt)/glm::length(ptLight + hit.hitPt);
-            //glm::vec3 vh = glm::normalize(lightDir + glm::normalize(ray.getDir()));
-            L += mat.specularI * mat.specularColor * max(0.0f, glm::pow(glm::dot(vh, hit.normal), mat.p));
+                // Specular
+                glm::vec3 vh = (light + hit.hitPt)/glm::length(light + hit.hitPt);
+                //glm::vec3 vh = glm::normalize(lightDir + glm::normalize(ray.getDir()));
+                L += mat.specularI * mat.specularColor * max(0.0f, glm::pow(glm::dot(vh, hit.normal), mat.p));
             }
         }  
 
         // mirror
         if(limit > 0){
-            glm::vec3 reflectDir = -ray.getDir() - 2.0f * glm::dot(-ray.getDir(), hit.normal) * hit.normal;
+            glm::vec3 reflectDir = ray.getDir() - 2.0f * glm::dot(ray.getDir(), hit.normal) * hit.normal;
             if (typeid(*currCam) == typeid(OrthoCam)) {
                 reflectDir = glm::reflect(-ray.getDir(), hit.normal);
             }
-    
+            
             Ray reflectRay(hit.hitPt, reflectDir);
-
             HitResult reflectHit = traceRay(reflectRay, tmin, tmax);
             if (reflectHit.hit){
                 limit -= 1;
-                // looks super good on ortho
                 L += reflectHit.material.specularI * this->shadeRay(reflectRay, tmin, tmax, limit);
             }
-            //L += 0.03f * hit.reflectance;
-            //L *= hit.reflectance;
-            //L += mat.specularI * glm::normalize(mat.specularColor * hit.reflectance) * hit.reflectance;
+
             return L;
         } else {
             return backgroundColor;

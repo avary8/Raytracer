@@ -20,7 +20,7 @@ class Scene {
 public:
     Scene(const shared_ptr<OrthoCam>& cam, const shared_ptr<Camera>& cam2);
     void addObj(const shared_ptr<Surface>& newObj);
-    void addLight(const shared_ptr<glm::vec3>& light);
+    void addLight(const shared_ptr<glm::vec3>& pos);
     vector<shared_ptr<glm::vec3>>& getLights();
 
     HitResult traceRay(Ray& ray, float tmin, float tmax);

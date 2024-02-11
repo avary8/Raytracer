@@ -33,9 +33,10 @@ void initOpenGLstuff(GLFWwindow*& window, unsigned int& texture, unsigned int& s
 // settings
 int SCR_WIDTH = 800;
 int SCR_HEIGHT = 800;
-int PIX_WIDTH = 800;
+int PIX_WIDTH = 800; 
 int PIX_HEIGHT = 800;
 float FOV = 60.0f;
+int limit = 3;
 
 const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
@@ -77,6 +78,8 @@ int main(){
     CallbackParameters callbackParams;
     callbackParams.window = window;
     callbackParams.scene = &scene;
+
+    
 
     // render loop
     // -----------
@@ -135,6 +138,16 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     } else if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
         params->scene->clearCams();
         generateCams(*params->scene);
+    } else if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
+        PIX_HEIGHT = min(PIX_HEIGHT + 100, 2000);
+        PIX_WIDTH = min(PIX_WIDTH + 100, 2000);
+    } else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
+        PIX_HEIGHT = max(PIX_HEIGHT - 100, 0);
+        PIX_WIDTH = max(PIX_WIDTH - 100, 0);
+    } else if (key == GLFW_KEY_8 && action == GLFW_PRESS){
+        limit = max(limit-1, 1);
+    } else if (key == GLFW_KEY_9 && action == GLFW_PRESS){
+        limit += 1;
     }
 }
 
@@ -154,7 +167,8 @@ Scene createScene(){
     // when we go negative z. we walk to the other side basically . and the objects are flipped because we are viewing from diff side
 
     /*-------------------------Camera Init-------------------------*/
-    OrthoCam orthoCam(glm::vec3(0.0f, 5.0f, 30.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT); 
+    OrthoCam orthoCam(glm::vec3(0.0f, 2.0f, 30.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT); 
+    //OrthoCam orthoCam(glm::vec3(0.0f, 2.0f, 0.5f), glm::vec3(0.0f, 0.0, -80.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT); 
 
     // perspective cams
     // bigger z = moving farther away from scene . moving towards screen (me)
@@ -163,11 +177,10 @@ Scene createScene(){
 
     /*-------------------------Shape Init-------------------------*/
 
-    Sphere newSphere(25.0f, glm::vec3(175.0f, 225.1f, 10.0f), glm::vec3(20, 20, 255));
+    Sphere newSphere(25.0f, glm::vec3(175.0f, 225.1f, -2.0f), glm::vec3(20, 20, 255));
     Sphere newSphere2(25.0f, glm::vec3(-100.0f, 25.1f, 20.0), glm::vec3(255, 0, 0));
     Sphere newSphere3(40.0f, glm::vec3(25.0f, 40.1f, 20.0f), glm::vec3(0, 255, 0));
-
-    Sphere newSphere4(50.0f, glm::vec3(-200.0f, 50.1f, 50.0f), glm::vec3(255, 255, 204));
+    Sphere newSphere4(50.0f, glm::vec3(-200.0f, 50.1f, 45.0f), glm::vec3(255, 255, 204));
 
     vector<glm::vec3> vertices = {
         glm::vec3(175.0f, 200.2f, 0.0f),
@@ -181,7 +194,7 @@ Scene createScene(){
     Triangle tri3(vector<glm::vec3>{vertices[0], vertices[2], vertices[3]}, glm::vec3(255, 204, 255));
     Triangle tri4(vector<glm::vec3>{vertices[1], vertices[2], vertices[3]}, glm::vec3(255, 204, 255));
 
-    glm::vec3 floorPosition(-400.0f, 0.0f, 0.0f); 
+    glm::vec3 floorPosition(-400.0f, 0.0f, 5000.0f); 
     glm::vec3 floorNormal(0.0f, 1.0f, 0.0f);
     glm::vec3 floorColor(200, 200, 200);
     Plane floor(floorPosition, normalize(floorNormal), floorColor);
@@ -192,6 +205,7 @@ Scene createScene(){
     scene.addLight(make_shared<glm::vec3>(glm::vec3{100.0f, 300.0f, 50.0f}));
     scene.addLight(make_shared<glm::vec3>(glm::vec3{0.0f, 10.0f, 0.0f}));
 
+    scene.addObj(make_shared<Plane>(floor));
     scene.addObj(make_shared<Triangle>(tri1));
     scene.addObj(make_shared<Triangle>(tri2));
     scene.addObj(make_shared<Triangle>(tri3));
@@ -200,8 +214,7 @@ Scene createScene(){
     scene.addObj(make_shared<Sphere>(newSphere2));
     scene.addObj(make_shared<Sphere>(newSphere3));
     scene.addObj(make_shared<Sphere>(newSphere4));
-    scene.addObj(make_shared<Plane>(floor));
-
+    
     //generateCams(scene);
     return scene;
 }
@@ -223,19 +236,22 @@ Scene createScene(){
 
 void generateCams(Scene& scene){
     float radius = scene.getCam()->getPos().z;
-    float angle = 0.0f;
-    while (angle < 360){
-        float x = radius * std::cos(angle * (M_PI / 180.0f));
-        float z =  radius * std::sin(angle * (M_PI / 180.0f));
-        
-        scene.addNewCam(glm::vec3(x, scene.getCam()->getPos().y, z), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
+    int steps = 20;
+    float increment = 2 * M_PI / steps;
 
-        angle += 10.0f;
+    for (int i = 0; i < steps; i++){
+        float angle = increment * i;
+        float x = radius * cos(angle);
+        float z =  radius * sin(angle);
+        float y = scene.getCam()->getPos().y;
+        
+        scene.addNewCam(glm::vec3(x, y, z), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
     }
-    // while (angle > 0){
+    // angle = 0.0f;
+    // while (angle < 1){
     //     float a =  angle;
-    //     scene.addNewCam(glm::vec3(0.0f, 100.0f, a), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
-    //     angle -= 500;
+    //     scene.addNewCam(glm::vec3(0.0f, 2.0f, -a), glm::vec3(0.0f, 0.0f, -80.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
+    //     angle += 0.1f;
     // }
 }
 
@@ -251,16 +267,12 @@ void rayTrace(Scene scene){
             HitResult hit = scene.traceRay(ray, .001, FLT_MAX);
 
             if (hit.hit) {
-                // ortho looks greater with > limit 
-                int limit = 2;
-                glm::vec3 L = scene.shadeRay(ray, 0.001, FLT_MAX, limit);
+                int l = limit;
+                glm::vec3 L = scene.shadeRay(ray, 0.001, FLT_MAX, l);
 
-                glm::vec3 correctedColor = glm::pow(L, glm::vec3(1.0f / 1.14f));
+                glm::vec3 correctedColor = glm::pow(L, glm::vec3(1.0f / 1.1f));
                 L = glm::clamp(correctedColor, 0.0f, 255.0f);
-
-                //L = glm::clamp(L, 0.0f, 255.0f);
                 hit.material.L = L;
-                
 
                 int idx = (j * PIX_WIDTH + i) * 3;
                 image[idx] = static_cast<unsigned char>(L[0]); 

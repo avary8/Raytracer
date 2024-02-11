@@ -13,8 +13,6 @@
 #include "Hits.h"
 using namespace std;
 
-const float EPSILON = std::numeric_limits<float>::epsilon();
-
 class Surface {
 public:
 	Surface();

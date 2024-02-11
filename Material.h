@@ -4,7 +4,6 @@
 #include <glm/vec3.hpp>
 using namespace std;
 
-
 class Material {
 public:
     Material(){
@@ -12,14 +11,13 @@ public:
         diffuseColor = {0, 0, 0};
         specularColor = {0, 0, 0};
     }
+
     Material(const glm::vec3& rgb){
         ambientColor = rgb;
         diffuseColor = rgb;
-        specularColor = rgb * 3.0f;
-        L = rgb;
+        specularColor = rgb;
+        L = rgb; 
     };
-
-    glm::vec3 evaluate(glm::vec3& l, glm::vec3& v, glm::vec3& n);
 
     glm::vec3 ambientColor;
     glm::vec3 diffuseColor;

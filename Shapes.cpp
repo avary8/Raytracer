@@ -24,23 +24,23 @@ Plane::Plane(glm::vec3& position, const glm::vec3& normal, glm::vec3& rgb){
 }
 
 HitResult Plane::intersect(Ray& ray, float& tmin, float& tmax) const {
-    HitResult hitResult;
-    hitResult.hit = false;
+    HitResult hitRes;
+    hitRes.hit = false;
 
     float denom = glm::dot(this->normal, ray.getDir());
-    if (std::abs(denom) > EPSILON) {
+    if (std::abs(denom) > tmin) {
         glm::vec3 rayToPlane = this->position - ray.getOrigin();
         float t = glm::dot(rayToPlane, this->normal) / denom;
 
         if (t >= tmin && t <= tmax) {
             //cout << "hit";
-            hitResult.hit = true;
-            hitResult.t = t;
-            hitResult.hitPt = ray.evaluate(t);
-            hitResult.normal = normal;
+            hitRes.hit = true;
+            hitRes.t = t;
+            hitRes.hitPt = ray.evaluate(t);
+            hitRes.normal = this->normal;
         }
     }
-    return hitResult;
+    return hitRes;
 }
 
 Triangle::Triangle(const vector<glm::vec3>& vertices, const glm::vec3& rgb){
@@ -113,17 +113,16 @@ HitResult Sphere::intersect(Ray& ray, float& tmin, float& tmax) const {
 
     } else if (discriminant > 0){
         float t = (-b - sqrt(discriminant)) / a;
-        if (t > tmin && t < tmax) {
+        float t2 = (-b + sqrt(discriminant)) / a;
+        if ((t < t2 || t > t2) && (t > tmin && t < tmax)) {
             hitRes.hit = true;
             hitRes.t = t;
             hitRes.hitPt = ray.evaluate(t);
             hitRes.normal = glm::normalize(hitRes.hitPt - this->origin);
-        }
-        t = (-b + sqrt(discriminant)) / a;
-        if (t > tmin && t < tmax) {
+        } else if ((t > t2 || t < t2) && (t2 > tmin && t2 < tmax)) {
             hitRes.hit = true;
-            hitRes.t = t;
-            hitRes.hitPt = ray.evaluate(t);
+            hitRes.t = t2;
+            hitRes.hitPt = ray.evaluate(t2);
             hitRes.normal = glm::normalize(hitRes.hitPt - this->origin);
         }
     }
