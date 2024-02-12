@@ -11,6 +11,7 @@
 #include "Hits.h"
 #include "Scene.h"
 #include "Shapes.h"
+#include "Light.h"
 
 #include <math.h>
 #include <cmath>
@@ -27,6 +28,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 Scene createScene();
 void generateCams(Scene& scene);
+void generateCams2(Scene& scene);
+void generateCams3(Scene& scene);
 void rayTrace(Scene scene);
 void initOpenGLstuff(GLFWwindow*& window, unsigned int& texture, unsigned int& shaderProgram, unsigned int& VBO, unsigned int& VAO, unsigned int& EBO);
 
@@ -35,7 +38,6 @@ int SCR_WIDTH = 800;
 int SCR_HEIGHT = 800;
 int PIX_WIDTH = 800; 
 int PIX_HEIGHT = 800;
-float FOV = 60.0f;
 int limit = 3;
 
 const char *vertexShaderSource = "#version 330 core\n"
@@ -138,6 +140,15 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     } else if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
         params->scene->clearCams();
         generateCams(*params->scene);
+    } else if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
+        params->scene->clearCams();
+        generateCams2(*params->scene);
+    } else if (key == GLFW_KEY_4 && action == GLFW_PRESS) {
+        params->scene->changeLight(0);
+    } else if (key == GLFW_KEY_5 && action == GLFW_PRESS) {
+        params->scene->changeLight(1);
+    } else if (key == GLFW_KEY_6 && action == GLFW_PRESS) {
+        params->scene->changeLight(2);
     } else if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
         PIX_HEIGHT = min(PIX_HEIGHT + 100, 2000);
         PIX_WIDTH = min(PIX_WIDTH + 100, 2000);
@@ -145,9 +156,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         PIX_HEIGHT = max(PIX_HEIGHT - 100, 0);
         PIX_WIDTH = max(PIX_WIDTH - 100, 0);
     } else if (key == GLFW_KEY_8 && action == GLFW_PRESS){
-        limit = max(limit-1, 1);
+        limit = max(limit-1, 0);
     } else if (key == GLFW_KEY_9 && action == GLFW_PRESS){
-        limit += 1;
+        limit = min(limit+1, 5);
     }
 }
 
@@ -159,31 +170,30 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 }
 
 Scene createScene(){
-    // maybe make this so you make scene and then ask scene to make this stuff ? idk
-    // Camera camera (width, height, pos, lookAt, up, fov);
-    //Camera camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -0.4f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 60.0f);
-    // > positive z makes camera walk away from scene and towards (screen (me))
-    // ^ zooming out
-    // when we go negative z. we walk to the other side basically . and the objects are flipped because we are viewing from diff side
-
     /*-------------------------Camera Init-------------------------*/
-    OrthoCam orthoCam(glm::vec3(0.0f, 2.0f, 30.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT); 
-    //OrthoCam orthoCam(glm::vec3(0.0f, 2.0f, 0.5f), glm::vec3(0.0f, 0.0, -80.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT); 
+    OrthoCam orthoCam(glm::vec3(0.0f, 2.0f, 30.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), SCR_WIDTH, SCR_HEIGHT); 
+    Camera perspectCam(glm::vec3(0.0f, 100.0f, 800.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), SCR_WIDTH, SCR_HEIGHT);
 
-    // perspective cams
-    // bigger z = moving farther away from scene . moving towards screen (me)
-    //Camera camera(glm::vec3(0.0f, 700.0f, 1500.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
-    Camera perspectCam(glm::vec3(0.0f, 100.0f, 800.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
+
+    Camera sphereCam(glm::vec3(-145.0f, 50.1f, 45.0f), glm::vec3(-200.0f, 50.0f, 45.0f), glm::vec3(0.0f, 1.0f, 0.0f), SCR_WIDTH, SCR_HEIGHT);
+
+
+
+    /*-------------------------Light Init-------------------------*/
+    Light l1 = Light(make_shared<glm::vec3>(glm::vec3{-250.0f, 200.0f, 150.0f}), true);
+    Light l2 = Light(make_shared<glm::vec3>(glm::vec3{0.0f, 250.0f, 150.0f}), true);
+    Light l3 = Light(make_shared<glm::vec3>(glm::vec3{100.0f, 250.0f, 200.0f}), true);
+    
 
     /*-------------------------Shape Init-------------------------*/
-
-    Sphere newSphere(25.0f, glm::vec3(175.0f, 225.1f, -2.0f), glm::vec3(20, 20, 255));
+    Sphere newSphere(25.0f, glm::vec3(175.0f, 125.1f, -2.0f), glm::vec3(20, 20, 255));
     Sphere newSphere2(25.0f, glm::vec3(-100.0f, 25.1f, 20.0), glm::vec3(255, 0, 0));
     Sphere newSphere3(40.0f, glm::vec3(25.0f, 40.1f, 20.0f), glm::vec3(0, 255, 0));
     Sphere newSphere4(50.0f, glm::vec3(-200.0f, 50.1f, 45.0f), glm::vec3(255, 255, 204));
 
+
     vector<glm::vec3> vertices = {
-        glm::vec3(175.0f, 200.2f, 0.0f),
+        glm::vec3(175.0f, 100.2f, 0.0f),
         glm::vec3(250.0f, 0.2f, 0.0f),
         glm::vec3(100.0f, 0.2f, 0.0f),
         glm::vec3(175.0f, 0.2f, 150.0f)
@@ -199,11 +209,13 @@ Scene createScene(){
     glm::vec3 floorColor(200, 200, 200);
     Plane floor(floorPosition, normalize(floorNormal), floorColor);
 
+
     /*---------------Saving to Scene------------*/
     Scene scene(make_shared<OrthoCam>(orthoCam), make_shared<Camera>(perspectCam));
-    scene.addLight(make_shared<glm::vec3>(glm::vec3{-100.0f, 300.0f, 50.0f}));
-    scene.addLight(make_shared<glm::vec3>(glm::vec3{100.0f, 300.0f, 50.0f}));
-    scene.addLight(make_shared<glm::vec3>(glm::vec3{0.0f, 10.0f, 0.0f}));
+    //Scene scene(make_shared<OrthoCam>(orthoCam), make_shared<Camera>(sphereCam));
+    scene.addLight(make_shared<Light>(l1));
+    scene.addLight(make_shared<Light>(l2));
+    scene.addLight(make_shared<Light>(l3));
 
     scene.addObj(make_shared<Plane>(floor));
     scene.addObj(make_shared<Triangle>(tri1));
@@ -214,25 +226,10 @@ Scene createScene(){
     scene.addObj(make_shared<Sphere>(newSphere2));
     scene.addObj(make_shared<Sphere>(newSphere3));
     scene.addObj(make_shared<Sphere>(newSphere4));
-    
+
     //generateCams(scene);
     return scene;
 }
-
-            /* orthographic notes */
-    // z closer to zero == closer to camera 
-    // positive z is coming out towards screen... so closer ?
-    // a visible object origin z-value NEEDS to be > radius + camera.pos.y 
-    // otherwise it is not visible because it is too close / behind camera
-    // | negative z-values | when greater than radius + cam.pos.y are also visible.... which one shouldnt be though ?
-    // i think negative should be visible and positive not
-
-             /* perspective notes */
- 
-    // positive z is coming out towards screen... so closer ?
-    // bigger z == closer to camera == bigger
-
-
 
 void generateCams(Scene& scene){
     float radius = scene.getCam()->getPos().z;
@@ -245,7 +242,7 @@ void generateCams(Scene& scene){
         float z =  radius * sin(angle);
         float y = scene.getCam()->getPos().y;
         
-        scene.addNewCam(glm::vec3(x, y, z), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), FOV, SCR_WIDTH, SCR_HEIGHT);
+        scene.addNewCam(glm::vec3(x, y, z), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), SCR_WIDTH, SCR_HEIGHT);
     }
     // angle = 0.0f;
     // while (angle < 1){
@@ -255,6 +252,119 @@ void generateCams(Scene& scene){
     // }
 }
 
+void generateCams2(Scene& scene){
+    float radius = scene.getCam()->getPos().z;
+    int steps = 20;
+    float increment = 2 * M_PI / steps;
+
+    for (int i = 0; i < steps; i++){
+        float angle = increment * i;
+        float x = radius * cos(angle);
+        float z =  radius * sin(angle);
+        float y = scene.getCam()->getPos().y;
+        
+        scene.addNewCam(glm::vec3(x, y, z), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), SCR_WIDTH, SCR_HEIGHT);
+        if (i == steps/4){
+            for (int j = 0; j < steps; j++){
+                if (j > steps/2){
+                    z += (j - (steps/2)) * 10;
+                } else {
+                    z -= j * 10;
+                }
+                scene.addNewCam(glm::vec3(x, y, z), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), SCR_WIDTH, SCR_HEIGHT);
+            }
+        }
+    }
+}
+
+// used to make animation #3 
+void generateCams3(Scene& scene){
+    // radius : 50.0f
+    // origin :(-200.0f, 50.1f, 45.0f)
+    // radius --> 60
+
+    glm::vec3 lookAt = {-200.0f, 50.0f, 45.0f};
+    float x = -145.0f;
+    float y = 50.1f;
+    float z = 45.0f;
+
+    cout << "before loop 1 x: " << x << " Y: " << y << " Z: " << z << endl;
+    //-------------------loop 1
+    // starts at: -145, 50.1, 45 
+    int steps = 20;
+    for (int i = 0; i < steps; i++){
+        y -= 2;
+        scene.addNewCam(glm::vec3(x, y, z), lookAt, glm::vec3(0.0f, 1.0f, 0.0f), SCR_WIDTH, SCR_HEIGHT);
+    }
+
+    //-------------------loop 2
+    // starts at: -145, 10.1, 45 
+    cout << "before loop 2 x: " << x << " Y: " << y << " Z: " << z << endl;
+    for (int i = 0; i < steps; i++){
+        x -= 10;
+        z += 10;
+        scene.addNewCam(glm::vec3(x, y, z), lookAt, glm::vec3(0.0f, 1.0f, 0.0f), SCR_WIDTH, SCR_HEIGHT);
+    }
+
+    //-------------------loop 3
+    // starts at: -345, 10.1, 245 
+    cout << "before loop 3 x: " << x << " Y: " << y << " Z: " << z << endl;
+    float incX = (-x)/steps;
+    float incY = (100-y)/steps;
+    float incZ = (800-z)/steps;
+
+    for (int i = 0; i < steps; i++){
+        x += incX;
+        y += incY;
+        z += incZ;
+        scene.addNewCam(glm::vec3(x, y, z), lookAt, glm::vec3(0.0f, 1.0f, 0.0f), SCR_WIDTH, SCR_HEIGHT);
+    }
+
+    //-------------------reverse loop 3
+    // starts at: 0, 100, 800 
+    // needs to end at: -345, 10.1, 245 
+    cout << "before loop 4 x: " << x << " Y: " << y << " Z: " << z << endl;
+    for (int i = 0; i < steps; i++){
+        x -= incX;
+        y -= incY;
+        z -= incZ;
+        scene.addNewCam(glm::vec3(x, y, z), lookAt, glm::vec3(0.0f, 1.0f, 0.0f), SCR_WIDTH, SCR_HEIGHT);
+    }
+
+    //-------------------reverse loop 2
+    // starts at: -345, 10.1, 245 
+    // needs to end at: -145, 10.1, 45 
+    cout << "before loop 5 x: " << x << " Y: " << y << " Z: " << z << endl;
+    // x = -145.0f + i * 10;
+    // z = 45.0f + i * 10;
+    for (int i = 0; i < steps; i++){
+        x += 10;
+        z -= 10;
+        scene.addNewCam(glm::vec3(x, y, z), lookAt, glm::vec3(0.0f, 1.0f, 0.0f), SCR_WIDTH, SCR_HEIGHT);
+    }
+
+    //-------------------reverse loop 1
+    // starts at: -145, 10.1, 45  
+    // needs to end at: -145, 50.1, 45
+    cout << "before loop 6 x: " << x << " Y: " << y << " Z: " << z << endl;
+    for (int i = 0; i < steps; i++){
+       y += 2;
+       scene.addNewCam(glm::vec3(x, y, z), lookAt, glm::vec3(0.0f, 1.0f, 0.0f), SCR_WIDTH, SCR_HEIGHT);
+    }
+    
+    // // new pos == {0, 100, 800}
+    // float radius = 800.0f;
+    // float increment = 2 * M_PI / steps;
+    // for (int i = 0; i < steps; i++){
+    //     float angle = increment * i;
+    //     float x = radius - (radius * cos(angle));
+    //     float z = radius - (radius * sin(angle));
+    //     float y = lastY;
+
+    //     // fix this part
+    //     scene.addNewCam(glm::vec3(x, y, z), lookAt, glm::vec3(0.0f, 1.0f, 0.0f), SCR_WIDTH, SCR_HEIGHT);
+    // }
+}
 
 
 void rayTrace(Scene scene){
@@ -269,10 +379,10 @@ void rayTrace(Scene scene){
             if (hit.hit) {
                 int l = limit;
                 glm::vec3 L = scene.shadeRay(ray, 0.001, FLT_MAX, l);
+                L = glm::pow(L, glm::vec3(1.0f / 1.3f));
+                L = glm::clamp(L, 0.0f, 255.0f);
 
-                glm::vec3 correctedColor = glm::pow(L, glm::vec3(1.0f / 1.1f));
-                L = glm::clamp(correctedColor, 0.0f, 255.0f);
-                hit.material.L = L;
+                
 
                 int idx = (j * PIX_WIDTH + i) * 3;
                 image[idx] = static_cast<unsigned char>(L[0]); 

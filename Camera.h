@@ -9,7 +9,7 @@ using namespace std;
 class Camera {
 public:
     Camera(){};
-    Camera(const glm::vec3& pos, const glm::vec3& lookAt, const glm::vec3& up, float fov, int width, int height);
+    Camera(const glm::vec3& pos, const glm::vec3& lookAt, const glm::vec3& up, int width, int height);
     virtual Ray generateRay(int i, int j, int pixWidth, int pixHeight);
 
     glm::vec3 getPos();
@@ -21,10 +21,6 @@ protected:
     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f); // v
     glm::vec3 right = glm::vec3(0.0f, 0.0f, 0.0f); // u right
 
-    glm::vec3 lookAt = glm::vec3(0.0f, 0.0f, -1.0f);
-
-    float fov;
-    float aspectRatio;
     float h;
     float w;
     float l, r, t, b;

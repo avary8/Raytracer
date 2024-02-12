@@ -50,8 +50,6 @@ class Sphere : public Surface {
 public:
 	Sphere(float radius, const glm::vec3& origin, const glm::vec3& rgb);
 	HitResult intersect(Ray& ray, float& tmin, float& tmax) const override;
-	//base class implementations
-	glm::vec3 getOrigin(){return origin;};
 
 private:
 	glm::vec3 origin;

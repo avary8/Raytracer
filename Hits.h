@@ -16,5 +16,4 @@ public:
     glm::vec3 normal;
     float t = FLT_MAX;
     Material material;
-    glm::vec3 reflectance;
 };

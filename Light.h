@@ -1,17 +1,22 @@
-// #pragma once
-// #include <iostream>
-// #include <vector>
-// #include <glm/vec3.hpp>
-// #include "Hits.h"
-// using namespace std;
+#pragma once
+#include <iostream>
+#include <memory>
+#include <glm/vec3.hpp>
+using namespace std;
 
-// class Light {
-// public:
-//     Light();
-//     Light(glm::vec3 rgb, glm::vec3 intensity);
-//     virtual glm::vec3 illuminate(Ray& ray, HitResult hitRes);
+class Light {
+public:
+    Light(shared_ptr<glm::vec3> pos, bool status){
+        this->pos = *pos;
+        this->status = status;
+    };
 
-// protected:
-//     glm::vec3 rgb;
-//     float intensity;
-// };
+    void lightswitch(){
+        cout << " old stat: " << status << endl;
+        this->status = !status;
+        cout << " new stat: " << status << endl;
+    };
+
+    glm::vec3 pos = {0.0f, 0.0f, 0.0f};
+    bool status = false;
+};

@@ -15,8 +15,7 @@ public:
     Material(const glm::vec3& rgb){
         ambientColor = rgb;
         diffuseColor = rgb;
-        specularColor = rgb;
-        L = rgb; 
+        specularColor = rgb * 3.0f;
     };
 
     glm::vec3 ambientColor;
@@ -27,7 +26,5 @@ public:
     float diffuseI = 0.4;
     float specularI = 0.4;
 
-    glm::vec3 L;
-
-    float p = 15.0f;
+    float p = 1.0f;
 };
